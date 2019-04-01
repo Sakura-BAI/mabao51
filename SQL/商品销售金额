@@ -1,0 +1,23 @@
+
+/*
+  测试
+
+*/
+
+
+SELECT
+
+td.goods_barcode,
+td.goods_name,
+SUM(td.pay_amount),
+SUM(td.goods_num)  as goods_num
+
+
+FROM trade_detail  AS td
+LEFT JOIN trade as t  on  t.id_onl = td.trade_id_onl
+
+WHERE td.create_time >= '2019-03-26 00:00:00'
+AND td.create_time <= '2019-03-30 23:59:59'
+AND t.status_label_onl != '已关闭'
+GROUP BY td.goods_barcode
+ORDER BY goods_num DESC
