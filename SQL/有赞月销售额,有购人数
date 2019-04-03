@@ -1,0 +1,82 @@
+/*
+  注释:
+  1 取出当日线上的销售额
+  2 取出当日每个店的支付购买手机号去重
+  3 按门店分组获得金额与日有购会员JOIN ,得到表
+  
+  以后可以直接改,取出详细的商品信息就可以,出商品报表
+
+*/
+
+
+/*
+取出 当日的支付金额,排除交易关闭的.
+SELECT
+store_name ,
+-- id_onl,
+SUM(pay_amount) as pay_amount,
+status_label_onl
+FROM trade
+WHERE create_time >  DATE_FORMAT(NOW(), '%Y-%m-%d 00:00:00')
+AND status_label_onl != "已关闭"
+GROUP BY store_name
+ORDER BY pay_amount DESC
+*/
+
+
+/*
+
+取出当日的支付购买手机号,去重
+SELECT COUNT(consignee_phone) as  number,
+store_name,
+store_id_erp
+FROM
+(
+SELECT 
+DISTINCT consignee_phone,
+store_name ,
+store_id_erp
+FROM trade
+WHERE create_time >  DATE_FORMAT(NOW(), '%Y-%m-%d 00:00:00')
+AND status_label_onl != "已关闭"
+)  as  base
+GROUP BY store_name
+
+
+*/
+
+SELECT
+	trade.store_name,
+	-- id_onl,
+	number,
+	SUM(pay_amount) AS pay_amount
+FROM
+	trade
+LEFT JOIN (
+	SELECT
+		COUNT(consignee_phone) AS number,
+		store_name,
+		store_id_erp
+	FROM
+		(
+			SELECT DISTINCT
+				consignee_phone,
+				store_name,
+				store_id_erp
+			FROM
+				trade
+			WHERE
+				create_time > DATE_FORMAT(NOW(), '%Y-%m-%d 00:00:00')
+			AND status_label_onl != "已关闭"
+		) AS base
+	GROUP BY
+		store_name
+)
+AS live ON live.store_id_erp = trade.store_id_erp
+WHERE
+	create_time > DATE_FORMAT(NOW(), '%Y-%m-%d 00:00:00')
+AND status_label_onl != "已关闭"
+GROUP BY
+	store_name
+ORDER BY
+	number DESC
