@@ -1,0 +1,28 @@
+
+/*
+  取创建时间小于
+
+
+*/
+
+
+SELECT hyfb.*,mmb.mobile,mmb.lastest_cumsume_date,mmb.create_date,'门店新客' from 
+`会员结构分布`  as hyfb
+LEFT JOIN arm_changsha.ms_member_def as mmb
+ON hyfb.`电话号码`  = mmb.mobile
+WHERE mmb.create_date > '2019-03-28 00-00-00' and  mmb.create_date < '2019-03-31 00-00-00'
+ORDER BY mmb.create_date
+
+
+
+
+ 
+ 
+取小于28 的购买时间 
+SELECT hyfb.*,mmb.mobile,mmb.lastest_cumsume_date,mmb.create_date,'门店老客' from 
+`会员结构分布`  as hyfb
+LEFT JOIN arm_changsha.ms_member_def as mmb
+ON hyfb.`电话号码`  = mmb.mobile
+WHERE mmb.create_date > '2019-03-28 00-00-00' 
+ORDER BY mmb.create_date
+
