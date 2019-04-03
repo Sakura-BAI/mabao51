@@ -1,0 +1,149 @@
+-- 
+-- ALTER TABLE  `有赞销售额有购会员`  ADD  `小票号`  varchar(64) DEFAULT NULL ;
+-- 研究一下单独的为什么店金额不对
+--  后面优化一下,全都是没有用的很多,杂乱
+DELETE
+FROM
+	`有赞销售额有购会员`;
+
+DROP TEMPORARY TABLE
+IF EXISTS base;
+
+DROP TEMPORARY TABLE
+IF EXISTS benjin;
+
+DROP TEMPORARY TABLE
+IF EXISTS baixi;
+
+-- 数据基础表
+CREATE TEMPORARY TABLE base 
+SELECT DISTINCT
+	(a.id) AS id,
+	a.salesdepart_id AS MDID,
+	YEAR (a.sales_date) AS Y,
+	MONTH (a.sales_date) AS M,
+	a.sales_date AS date1,
+	e.`name` AS MD,
+	b.mobile AS mobile
+FROM
+	arm_changsha.goods_sales AS a
+LEFT JOIN arm_changsha.goods_sales_detail AS d ON d.sales_id = a.id
+LEFT JOIN arm_changsha.ms_member_def AS b ON b.id = a.member_id
+LEFT JOIN arm_changsha.sys_shop AS e ON e.id = a.salesdepart_id -- 条件筛选
+WHERE
+
+ sales_date >= '2019-03-01 00:00:00'
+AND sales_date <= '2019-03-31 23:59:59';
+
+-- 已经成功获取需要数据 ,不能获得门店总金额的同时counnt 电话号码数 做临时表
+-- SELECT MDID,Y,M,MD,mobile, 	DATE_FORMAT(date1, '%Y%m%d') AS time1  FROM  base GROUP BY mobile,time1 
+-- 插入有赞销售会员表内,销售额
+INSERT INTO `有赞销售额有购会员` (
+	-- 	 小票号,
+	年,
+	月,
+	门店ID,
+	门店 -- 	销售额
+	-- 	消费时间	,
+	-- 	手机号码
+) SELECT
+	Y AS 年,
+	M AS 月,
+	MDID AS 门店ID,
+	MD AS 门店 -- SUM(WUDI) AS 销售额
+	-- 	DATE_FORMAT(date1, '%Y%m%d') AS time1
+	-- 	date1
+FROM
+	base
+GROUP BY
+	MDID;
+
+-- 建立临时表,分类电话号码,再以时间分组 ,结果以当天的来往的日活跃数去重
+CREATE TEMPORARY TABLE baixi SELECT
+	MDID,
+	MD,
+	M,
+	mobile,
+	Y,
+	DATE_FORMAT(date1, '%Y%m%d') AS time1
+FROM
+	base
+WHERE
+	mobile IS NOT NULL
+GROUP BY
+	mobile,
+	time1
+ORDER BY
+	time1;
+
+-- 这应该可以优化成base 主表 , 先暂时使用.晚上进行优化,相同的sales id 产生笛卡尔积 ,27* 27 变成了 729  .所以在join 条件,加上唯一.使两个不产生乘积情况
+-- 后续优化
+CREATE TEMPORARY TABLE benjin SELECT
+	gs.salesdepart_id AS MDID,
+	ROUND(
+		(
+			SUM(
+				gsd.deal_price * gsd.sales_number
+			) - IFNULL(SUM(gsp.gift_balance), 0)
+		) / 10000,
+		2
+	) AS price
+FROM
+	(
+		SELECT
+			salesdepart_id,
+			id
+		FROM
+			arm_changsha.goods_sales
+		WHERE
+			sales_date BETWEEN "2019-03-01 00:00:00"
+		AND "2019-03-31 23:59:59"
+	) AS gs
+LEFT JOIN arm_changsha.goods_sales_detail AS gsd ON gsd.sales_id = gs.id
+LEFT JOIN arm_changsha.goods_sales_pay_detail gsp ON CONCAT(
+	gsp.sales_id,
+	'_',
+	gsp.goods_id
+) = CONCAT(gs.id, '_', gsd.goods_id)
+GROUP BY
+	MDID;
+
+-- 更新日活跃数与月活跃数
+UPDATE `有赞销售额有购会员` AS a
+SET a.`日活跃累计` = (
+	SELECT
+		-- 	SUM(WUDI) as 销售额,
+		COUNT(mobile) AS 日活跃累计
+	FROM
+		baixi AS b
+	WHERE
+		a.`门店ID` = b.MDID
+	GROUP BY
+		MDID
+);
+
+UPDATE `有赞销售额有购会员` AS a
+SET a.`月活跃总数` = (
+	SELECT
+		-- 	SUM(WUDI) as 销售额,
+		COUNT(DISTINCT mobile) AS 月活跃总数
+	FROM
+		baixi AS b
+	WHERE
+		a.`门店ID` = b.MDID
+	GROUP BY
+		MDID
+);
+
+UPDATE `有赞销售额有购会员` AS a
+SET a.`销售额` = (
+	SELECT
+		-- 	SUM(WUDI) as 销售额,
+		price
+	FROM
+		benjin AS b
+	WHERE
+		a.`门店ID` = b.MDID
+	GROUP BY
+		MDID
+)
