@@ -24,16 +24,14 @@ SELECT DISTINCT
 	MONTH (a.sales_date) AS M,
 	a.sales_date AS date1,
 	e.`name` AS MD,
-	b.mobile AS mobile
+	a.member_id AS member_id
 FROM
 	arm_changsha.goods_sales AS a
-LEFT JOIN arm_changsha.goods_sales_detail AS d ON d.sales_id = a.id
-LEFT JOIN arm_changsha.ms_member_def AS b ON b.id = a.member_id
 LEFT JOIN arm_changsha.sys_shop AS e ON e.id = a.salesdepart_id -- 条件筛选
 WHERE
-
- sales_date >= '2019-03-01 00:00:00'
-AND sales_date <= '2019-03-31 23:59:59';
+ a.create_date >= '2019-03-01 00:00:00'
+AND a.create_date  <= '2019-03-31 23:59:59'
+AND sales_type =1;
 
 -- 已经成功获取需要数据 ,不能获得门店总金额的同时counnt 电话号码数 做临时表
 -- SELECT MDID,Y,M,MD,mobile, 	DATE_FORMAT(date1, '%Y%m%d') AS time1  FROM  base GROUP BY mobile,time1 
@@ -59,25 +57,26 @@ GROUP BY
 	MDID;
 
 -- 建立临时表,分类电话号码,再以时间分组 ,结果以当天的来往的日活跃数去重
-CREATE TEMPORARY TABLE baixi SELECT
+CREATE TEMPORARY TABLE baixi
+ SELECT
 	MDID,
 	MD,
 	M,
-	mobile,
+	member_id,
 	Y,
 	DATE_FORMAT(date1, '%Y%m%d') AS time1
 FROM
 	base
 WHERE
-	mobile IS NOT NULL
+	member_id IS NOT NULL
 GROUP BY
-	mobile,
+	member_id,
 	time1
 ORDER BY
 	time1;
 
--- 这应该可以优化成base 主表 , 先暂时使用.晚上进行优化,相同的sales id 产生笛卡尔积 ,27* 27 变成了 729  .所以在join 条件,加上唯一.使两个不产生乘积情况
--- 后续优化
+
+-- 本金
 CREATE TEMPORARY TABLE benjin SELECT
 	gs.salesdepart_id AS MDID,
 	ROUND(
@@ -113,7 +112,7 @@ UPDATE `有赞销售额有购会员` AS a
 SET a.`日活跃累计` = (
 	SELECT
 		-- 	SUM(WUDI) as 销售额,
-		COUNT(mobile) AS 日活跃累计
+		COUNT(member_id) AS 日活跃累计
 	FROM
 		baixi AS b
 	WHERE
@@ -122,11 +121,12 @@ SET a.`日活跃累计` = (
 		MDID
 );
 
+-- 更新日活跃人数
 UPDATE `有赞销售额有购会员` AS a
 SET a.`月活跃总数` = (
 	SELECT
-		-- 	SUM(WUDI) as 销售额,
-		COUNT(DISTINCT mobile) AS 月活跃总数
+
+		COUNT(DISTINCT member_id) AS 月活跃总数
 	FROM
 		baixi AS b
 	WHERE
