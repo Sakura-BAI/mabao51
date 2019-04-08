@@ -1,0 +1,17 @@
+.
+
+
+
+
+SELECT gb.`name`,(gsd.sales_price/10000)as price, 
+SUM(gsd.sales_number) AS sales_number, 
+gsd.sales_id,
+DATE_FORMAT(gsd.create_date,"%y%m") as time
+FROM goods_sales_detail AS   gsd
+LEFT JOIN goods_base  as gb  on gsd.goods_id = gb.id
+WHERE gb.`name`  LIKE "%积木%" 
+-- AND gb.`name`   = "线上专享智恩堡大颗粒拼接环保积木128粒收纳桶装" -- 数据验证
+AND gsd.create_date BETWEEN "2019-01-01 00:00:00"  AND "2019-03-31 23:59:59" 
+GROUP BY gsd.barcode,time
+ORDER BY `name`
+LIMIT 1000
