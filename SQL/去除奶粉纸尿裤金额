@@ -1,11 +1,4 @@
 
-
-
-
-
-
-
-
 /*
 logic ： 1 算出每个门店的本金金额
 				 2 去除奶粉纸尿裤的SKU条码
@@ -45,6 +38,7 @@ WHERE gk.code LIKE "01%"
 OR gk.code LIKE "02%"
 
 	
+弄混了trade 里面的pay_amount 才是直接sum 起来的。
 
 */
 
