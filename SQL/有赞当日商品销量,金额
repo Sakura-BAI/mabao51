@@ -1,0 +1,9 @@
+/*正式创作空间,要从明细表作为主表,这样计算关键值时,才不会出现KEY值不唯一,多条数据.笛卡尔积. sum数值错误.*/
+
+
+SELECT t.store_name,td.goods_name_onl,COUNT(DISTINCT t.id_onl) AS  Ddnumber ,SUM(td.pay_amount)  FROM trade_detail AS td
+LEFT JOIN trade AS t ON t.id_onl = td.trade_id_onl
+WHERE t.pay_time >DATE_FORMAT(NOW(), '%Y-%m-%d 00:00:00')
+AND t.status >1 AND t.status < 9  
+GROUP BY t.store_id_erp,td.goods_barcode
+ORDER BY t.store_name DESC
