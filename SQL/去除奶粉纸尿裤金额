@@ -1,6 +1,50 @@
+
+
+
+
+
+
+
+
 /*
-  主要是去除奶粉纸尿裤的商品编码, 而后相加 
-  我老是记得有一个字段,直接可以sum 就是本金额的. 不知道去哪里了.不用这么麻烦算的
+logic ： 1 算出每个门店的本金金额
+				 2 去除奶粉纸尿裤的SKU条码
+				 3 汇总即可
+
+问题出现在，去除SKU的时候，出错了。大类区分不准确 。 奶粉以01，02 开头。 
+goods_kind 表里的CODE 为准。 开始以为是ID
+
+
+
+本金金额： -- 开始时间筛选放在里面 goods_sales 表。 放外面简洁多了。
+	SELECT
+	gs.salesdepart_id,
+	ROUND(
+		(
+			SUM(
+				gsd.deal_price * gsd.sales_number
+			) - IFNULL(SUM(gsp.gift_balance), 0)
+		) / 10000,
+		2
+	) AS amount
+FROM
+goods_sales  as gs
+LEFT JOIN goods_sales_detail AS gsd ON gsd.sales_id = gs.id
+LEFT JOIN goods_sales_pay_detail gsp ON  CONCAT(gsp.sales_id,'_',gsp.goods_id) = CONCAT(gs.id, '_', gsd.goods_id)
+WHERE 
+gs.sales_date 
+BETWEEN "2019-03-01 00:00:00"
+AND "2019-03-31 23:59:59"
+
+
+
+奶粉纸尿裤条码： 通过 goods_base  与 goods_kind 关联得到大类区分加商品SKU
+SELECT  gb.bar_code FROM  goods_base AS gb 
+LEFT JOIN  goods_kind  AS gk ON  gk.id = gb.kind_id
+WHERE gk.code LIKE "01%" 
+OR gk.code LIKE "02%"
+
+	
 
 */
 
@@ -16,26 +60,17 @@ SELECT
 		2
 	) AS amount
 FROM
-	(
-		SELECT
-			salesdepart_id,
-			id
-		FROM
-			arm_changsha.goods_sales  AS gds
-		WHERE
-		sales_date 
+goods_sales  as gs
+LEFT JOIN goods_sales_detail AS gsd ON gsd.sales_id = gs.id
+LEFT JOIN goods_sales_pay_detail gsp ON  CONCAT(gsp.sales_id,'_',gsp.goods_id) = CONCAT(gs.id, '_', gsd.goods_id)
+WHERE 
+		gs.sales_date 
 		BETWEEN "2019-03-01 00:00:00"
 		AND "2019-03-31 23:59:59"
-	) AS gs
-LEFT JOIN arm_changsha.goods_sales_detail AS gsd ON gsd.sales_id = gs.id
-LEFT JOIN arm_changsha.goods_sales_pay_detail gsp ON  CONCAT(gsp.sales_id,'_',gsp.goods_id) = CONCAT(gs.id, '_', gsd.goods_id)
-WHERE gsd.barcode NOT IN (
-            SELECT
-                条码
-            FROM
-                `tmp_通货`
-            )
--- AND gs.salesdepart_id = "1001"
+ AND gsd.barcode NOT IN (
+SELECT  gb.bar_code FROM  goods_base AS gb 
+LEFT JOIN  goods_kind  AS gk ON  gk.id = gb.kind_id
+WHERE gk.code LIKE "01%" 
+OR gk.code LIKE "02%"
+)
 GROUP BY gs.salesdepart_id
-
-
