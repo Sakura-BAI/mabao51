@@ -1,0 +1,45 @@
+/*
+  有赞线上,有购订单数
+
+*/
+
+
+SELECT
+	trade.store_name,
+	-- id_onl,
+	store_id_erp,
+	SUM(pay_amount) AS pay_amount
+FROM
+	trade
+LEFT JOIN (
+	SELECT
+		COUNT(consignee_phone) AS number,
+		store_name,
+		store_id_erp
+	FROM
+		(
+			SELECT DISTINCT
+				consignee_phone,
+				store_name,
+				store_id_erp
+			FROM
+				trade
+			WHERE
+					create_time >DATE_FORMAT(NOW(), '%Y-%m-%d 00:00:00')
+			AND status_label_onl != "已关闭"
+		) AS base
+	GROUP BY
+		store_name
+)
+AS live ON live.store_id_erp = trade.store_id_erp
+WHERE
+	create_time >DATE_FORMAT(NOW(), '%Y-%m-%d 00:00:00')
+AND status_label_onl != "已关闭"
+GROUP BY
+	store_name
+ORDER BY
+	number DESC
+
+
+
+
