@@ -1,0 +1,28 @@
+/*
+	近30天有赞销售额
+trade_status = {
+        "0": "未知",
+        "1": "待付款",
+        "2": "采购中",
+        "3": "待出库",
+        "4": "配送中",
+        "5": "待核销",
+        "6": "待打单",
+        "7": "已取货",
+        "8": "已完成",
+        "9": "已关闭",
+    }
+
+*/
+SELECT
+	SUM(pay_amount),DATE_FORMAT(pay_time,'%Y%m%d') AS time1
+FROM
+	trade
+WHERE
+	pay_time BETWEEN DATE_FORMAT(
+		DATE_SUB(NOW(), INTERVAL 30 DAY),
+		'%Y-%m-%d 00:00:00')
+				AND DATE_FORMAT(NOW(), '%Y-%m-%d 23:59:59')
+AND status >1 AND status <9
+GROUP BY time1
+ORDER BY time1 DESC
