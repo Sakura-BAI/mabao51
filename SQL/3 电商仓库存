@@ -1,0 +1,106 @@
+
+
+/*
+ 
+  创建临时表会更简单.下面做注解 ,不支持分号.;
+  1 运行时,选取库存总量,平均金额
+  2 限制条码在电商仓的库存条码
+  3 获取订单数量,订单差异,到货数量
+*/
+
+/*
+  库存总数,余额查询.  关联的键值是goods_id
+  SELECT
+-- 	COUNT(*) ,
+igs.department_id,
+-- igs.number,
+AVG(igs.in_price)/10000,
+igs.goods_id,
+igs.ori_number,
+igs.purchase_price_total/10000,
+gb.`name`,
+gb.bar_code,
+sum(number) as number,
+iogd.Dnumber,
+iogd.in_stock_number,
+iogd.DiffNumber
+FROM
+arm_mbwy.inv_goods_stock AS igs
+INNER JOIN arm_mbwy.goods_base AS gb ON gb.id = igs.goods_id
+  
+*/
+
+
+
+/*
+  电商仓条码查询 ,其实是上面库存总数的限定了电商仓
+  SELECT
+-- 	COUNT(*) ,
+gb.bar_code
+FROM
+		arm_mbwy.inv_goods_stock AS igs
+		INNER JOIN arm_mbwy.goods_base AS gb ON gb.id = igs.goods_id
+WHERE igs.department_id = 25192
+AND igs.del_flag = '0'
+*/
+
+
+
+
+/*
+  近30日订货数量的查询
+SELECT
+iogd.goods_id,
+sum(iogd.number),
+sum(iogd.in_stock_number),
+sum(iogd.number)-sum(iogd.in_stock_number)
+-- sum(number)
+-- *
+FROM 	arm_mbwy.inv_order_goods_detail   AS iogd
+WHERE
+iogd.create_date >= DATE_SUB(CURDATE(),INTERVAL 30 DAY)
+GROUP BY iogd.goods_id
+
+*/
+
+
+
+SELECT
+	gb.bar_code AS bar_code,
+	gb.`name` AS NAME,
+	ROUND(
+		sum(number) * (AVG(igs.in_price) / 10000),
+		2
+	) AS sum_price,
+	sum(number) AS all_number,
+	sum(igs.ori_number) AS ori_number,
+	ROUND(AVG(igs.in_price) / 10000, 2) AS avg_price,
+	-- igs.purchase_price_total/10000  as int_price,
+	iogd.Dnumber AS Dnumber,
+	iogd.in_stock_number AS stock_number,
+	iogd.DiffNumber AS Diffnumber
+FROM
+	arm_mbwy.inv_goods_stock AS igs
+INNER JOIN arm_mbwy.goods_base AS gb ON gb.id = igs.goods_id
+LEFT JOIN (
+	SELECT
+		iogd.goods_id,
+		sum(iogd.number) AS Dnumber,
+		sum(iogd.in_stock_number) AS in_stock_number,
+		sum(iogd.number) - sum(iogd.in_stock_number) AS DiffNumber
+	FROM
+		arm_mbwy.inv_order_goods_detail AS iogd
+	WHERE
+		iogd.create_date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+	GROUP BY
+		iogd.goods_id
+) AS iogd ON iogd.goods_id = igs.goods_id
+WHERE
+ igs.del_flag = "0"
+AND gb.`name` NOT  LIKE "测试%"
+AND igs.department_id = 25192
+GROUP BY
+	gb.bar_code
+ORDER BY
+	all_number DESC
+
