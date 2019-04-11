@@ -1,0 +1,14 @@
+
+/*未完成*/
+
+SELECT gs.sales_no,gs.guide_id,gs.salesdepart_id, SUM(gs.received_money/10000) as benjin,SUM(gsd.sales_number*gb.purchase_price/10000) AS , SUM(gsd.sales_number*gb.delivery_price/10000),gsd.goods_id ,gsd.sales_number,gb.purchase_price/10000 ,gb.delivery_price/10000
+FROM goods_sales  AS  gs
+LEFT JOIN goods_sales_detail AS gsd  ON gs.sales_no = gsd.sales_no
+LEFT JOIN goods_base  as  gb  ON  gb.id   = gsd.goods_id
+WHERE gs.sales_channel_id = "O2O"
+AND gs.salesdepart_id !=4000
+AND gs.sales_date 
+BETWEEN "2019-03-01 00:00:00"
+AND "2019-03-31 23:59:59"
+GROUP BY gs.sales_no
+LIMIT 10 
