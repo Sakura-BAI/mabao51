@@ -29,3 +29,19 @@ LIMIT 10000
 
 
 
+ 中午再记录一次
+SELECT gs.sales_no,gs.guide_id,sys.`name`,gs.salesdepart_id,office.`name`, SUM(gs.received_money/10000) as 本金,SUM(gsd.sales_number*gb.purchase_price/10000) AS 采购价成本, SUM(gsd.sales_number*gb.delivery_price/10000) AS 配送价成本,gsd.goods_id,gb.`name`,gsd.sales_number AS 商品数量,gb.purchase_price/10000 AS 采购价 ,gb.delivery_price/10000 AS 配送价 
+FROM goods_sales  AS  gs
+LEFT JOIN goods_sales_detail AS gsd  ON gs.sales_no = gsd.sales_no
+LEFT JOIN goods_base  as  gb  ON  gb.id   = gsd.goods_id
+LEFT JOIN sys_staff AS  sys  ON  sys.id = gs.guide_id
+LEFT JOIN sys_office  as office  on office.id = gs.salesdepart_id
+WHERE gs.sales_channel_id = "O2O"
+AND gs.salesdepart_id !=4000
+AND gs.sales_date 
+BETWEEN "2019-03-01 00:00:00"
+AND "2019-03-31 23:59:59"
+GROUP BY gs.sales_no
+LIMIT 10000
+
+
