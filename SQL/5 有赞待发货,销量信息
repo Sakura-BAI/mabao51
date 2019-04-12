@@ -1,0 +1,68 @@
+
+
+/*
+近30天销售信息, 有赞待发货数量,
+有赞销量信息,条码,和库存一起使用.
+*/
+
+
+SELECT td.goods_name_onl,td.goods_barcode, SUM(td.goods_num) AS  Gdnumber ,SUM(td.pay_amount) as pay_amount, td.deal_price FROM trade_detail AS td
+
+LEFT JOIN trade AS t ON t.id_onl = td.trade_id_onl
+WHERE 
+	t.pay_time >  DATE_FORMAT(DATE_SUB(NOW(),INTERVAL 30 day), '%Y-%m-%d 00:00:00')
+AND t.pay_time < DATE_FORMAT(NOW(), '%Y-%m-%d 00:00:00')
+
+-- 有赞销量
+-- AND t.status >1 AND t.status < 9  
+-- 有赞待发货
+AND t.status_label_onl = "待发货"    
+AND td.goods_name_onl NOT LIKE "测试%"
+GROUP BY td.goods_barcode
+ORDER BY  Gdnumber DESC
+
+
+
+/*
+电商仓库存数量
+*/
+
+
+SELECT
+	gb.bar_code AS bar_code,
+	gb.`name` AS NAME,
+	ROUND(
+		sum(number) * (AVG(igs.in_price) / 10000),
+		2
+	) AS sum_price,
+	sum(number) AS all_number,
+	sum(igs.ori_number) AS ori_number,
+	ROUND(AVG(igs.in_price) / 10000, 2) AS avg_price,
+	-- igs.purchase_price_total/10000  as int_price,
+	iogd.Dnumber AS Dnumber,
+	iogd.in_stock_number AS stock_number,
+	iogd.DiffNumber AS Diffnumber
+FROM
+	arm_mbwy.inv_goods_stock AS igs
+INNER JOIN arm_mbwy.goods_base AS gb ON gb.id = igs.goods_id
+LEFT JOIN (
+	SELECT
+		iogd.goods_id,
+		sum(iogd.number) AS Dnumber,
+		sum(iogd.in_stock_number) AS in_stock_number,
+		sum(iogd.number) - sum(iogd.in_stock_number) AS DiffNumber
+	FROM
+		arm_mbwy.inv_order_goods_detail AS iogd
+	WHERE
+		iogd.create_date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+	GROUP BY
+		iogd.goods_id
+) AS iogd ON iogd.goods_id = igs.goods_id
+WHERE
+ igs.del_flag = "0"
+AND gb.`name` NOT  LIKE "测试%"
+AND igs.department_id = 25192
+GROUP BY
+	gb.bar_code
+ORDER BY
+	all_number DESC
