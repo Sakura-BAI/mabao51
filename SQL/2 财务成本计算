@@ -45,3 +45,12 @@ GROUP BY gs.sales_no
 LIMIT 10000
 
 
+
+/*
+
+导购ID 关联全部的关系
+*/
+SELECT sy.name,ssd.related_user  from sys_staff_detail as ssd
+LEFT JOIN  sys_staff  AS sy ON  sy.id = ssd.staff_id
+LIMIT 10000
+
