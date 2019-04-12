@@ -1,7 +1,9 @@
--- 
--- ALTER TABLE  `有赞销售额有购会员`  ADD  `小票号`  varchar(64) DEFAULT NULL ;
--- 研究一下单独的为什么店金额不对
---  后面优化一下,全都是没有用的很多,杂乱
+/*
+华创线上销售额，有够会员
+
+*/
+
+
 DELETE
 FROM
 	`有赞销售额有购会员`;
@@ -147,3 +149,36 @@ SET a.`销售额` = (
 	GROUP BY
 		MDID
 )
+
+
+
+
+
+
+
+
+
+
+/*
+有赞线上销售额,有购会员。
+
+*/
+
+
+SELECT
+store_id_erp,
+store_name ,
+-- id_onl,
+SUM(pay_amount) as pay_amount,
+-- status_label_onl,
+-- store_id_erp ,
+COUNT(DISTINCT consignee_phone) as i
+FROM trade
+WHERE
+pay_time >  "2019-04-01 00:00:00"
+AND pay_time < "2019-04-11 23:59:59"
+AND	status >1 
+AND status <9
+AND	trade.store_id_erp != 4000
+GROUP BY store_id_erp
+ORDER BY pay_amount DESC
