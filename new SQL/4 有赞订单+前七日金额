@@ -1,0 +1,135 @@
+-- Note: Unless you save your query, these tabs will NOT persist if you clear your cookies or change browsers.
+
+
+
+
+/*
+  注释:
+  1 取出当日线上的销售额
+  2 取出当日每个店的支付购买手机号去重
+  3 按门店分组获得金额与日有购会员JOIN ,得到表
+  
+  以后可以直接改,取出详细的商品信息就可以,出商品报表
+
+*/
+
+
+/*
+取出 当日的支付金额,排除交易关闭的.
+SELECT
+store_name ,
+-- id_onl,
+SUM(pay_amount) as pay_amount,
+status_label_onl
+FROM trade
+WHERE create_time >  DATE_FORMAT(NOW(), '%Y-%m-%d 00:00:00')
+AND status_label_onl != "已关闭"
+GROUP BY store_id_erp 
+ORDER BY pay_amount DESC
+*/
+
+
+/*
+
+取出当日的支付购买手机号,去重
+SELECT COUNT(consignee_phone) as  number,
+store_name,
+store_id_erp
+FROM
+(
+SELECT 
+DISTINCT consignee_phone,
+store_name ,
+store_id_erp
+FROM trade
+WHERE create_time >  DATE_FORMAT(NOW(), '%Y-%m-%d 00:00:00')
+AND status_label_onl != "已关闭"
+)  as  base
+GROUP BY store_id_erp
+
+
+*/
+
+SELECT
+	trade.store_name,
+	-- id_onl,
+	COUNT(DISTINCT id_onl) AS DDnumber,
+	number,
+
+	SUM(pay_amount) AS pay_amount,
+	qirimoney,
+  DATE_FORMAT(pay_time,"%Y-%m-%d") as time
+FROM
+	trade
+LEFT JOIN (
+	SELECT
+		COUNT(consignee_phone) AS number,
+		store_name,
+		store_id_erp
+	FROM
+		(
+			SELECT DISTINCT
+				consignee_phone,
+				store_name,
+				store_id_erp
+			FROM
+				trade
+			WHERE
+	pay_time >  DATE_FORMAT(DATE_SUB(NOW(),INTERVAL 1 day), '%Y-%m-%d 00:00:00')
+AND pay_time < DATE_FORMAT(DATE_SUB(NOW(),INTERVAL 1 day), '%Y-%m-%d 23:59:59')
+			AND 
+			status >1 AND status <9
+		) AS base
+	GROUP BY
+		store_name
+)
+AS live ON live.store_id_erp = trade.store_id_erp
+LEFT JOIN 
+(
+SELECT
+store_id_erp,
+
+-- id_onl,
+SUM(pay_amount) as qirimoney
+FROM trade
+WHERE 
+	pay_time >  DATE_FORMAT(DATE_SUB(NOW(),INTERVAL 8 day), '%Y-%m-%d 00:00:00')
+AND pay_time < DATE_FORMAT(DATE_SUB(NOW(),INTERVAL 1 day), '%Y-%m-%d 23:59:59')
+AND	status >1 
+AND status <9
+GROUP BY store_id_erp
+
+) as qirimoney  on qirimoney.store_id_erp = 	trade.store_id_erp
+
+WHERE
+	pay_time >  DATE_FORMAT(DATE_SUB(NOW(),INTERVAL 1 day), '%Y-%m-%d 00:00:00')
+AND pay_time < DATE_FORMAT(DATE_SUB(NOW(),INTERVAL 1 day), '%Y-%m-%d 23:59:59')
+AND	status >1 
+AND status <9
+AND	trade.store_id_erp != 4000
+GROUP BY
+	trade.store_id_erp
+ORDER BY
+	number DESC
+
+
+
+
+
+/*
+前七日的销售额
+*/
+
+SELECT
+store_id_erp,
+
+-- id_onl,
+SUM(pay_amount) as pay_amount
+FROM trade
+WHERE 
+	pay_time >  DATE_FORMAT(DATE_SUB(NOW(),INTERVAL 8 day), '%Y-%m-%d 00:00:00')
+AND pay_time < DATE_FORMAT(DATE_SUB(NOW(),INTERVAL 1 day), '%Y-%m-%d 23:59:59')
+AND	status >1 
+AND status <9
+GROUP BY store_id_erp
+ORDER BY pay_amount DESC
