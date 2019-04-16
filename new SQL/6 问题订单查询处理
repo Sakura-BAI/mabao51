@@ -1,0 +1,65 @@
+
+
+查订单步骤：
+
+数据库查询
+
+1、trade表
+id_onl：有赞订单号
+goods_name_4_search：商品名称和商品条码
+id：对应trade_detail中的trade_id
+store_id_ofl: 门店编码（ERP系统中可用）
+send_consign_message:是否发送取货提醒
+
+查看某商品在某门店销售的所有订单
+
+SELECT *
+FROM trade
+WHERE store_id_ofl = 门店编码
+AND goods_name_4_search LIKE ‘%商品条码%’;
+
+# 查询某门店销售某商品总个数
+
+SELECT
+    SUM( td.goods_num ) AS goods_num
+FROM
+    `trade` AS t
+    LEFT JOIN trade_detail AS td ON td.trade_id = t.id
+WHERE
+    t.`store_id` = '1025'
+    AND td.`goods_barcode` = '6923160500040'
+    AND t.`status` BETWEEN '2' AND '8'
+
+*-某门店销售某商品订单明细
+SELECT
+--     SUM( td.goods_num ) AS goods_num
+  t.id_onl AS 有赞单号,
+    t.consignee_name AS 取货人,
+    t.consignee_phone AS 取货人电话,
+    t.pay_time AS 付款时间,
+    td.goods_num AS 购买数量
+FROM
+    `trade` AS t
+    LEFT JOIN trade_detail AS td ON td.trade_id = t.id
+WHERE
+    t.`store_id` = '1025'
+    AND td.`goods_barcode` = '6923160500040'
+    AND t.`status` BETWEEN '2' AND '8'
+
+
+2、trade_detail表
+goods_barcode:商品条码（ERP系统中可用）
+
+
+3、system_log表
+input—LIKE：%订单号%：可查看该订单调用的接口
+input—LIKE ：%提货码%：可在output中查到订单号
+
+ERP系统查询
+
+1、库存查询：查看商品的实际库存，如果没有库存，则不显示任何数据
+2、进销存流水查询：查看该门店该货品的入库和销售数量
+3、返仓管理：查看门店商品的返仓数量
+4、历史库存：查看门店中商品历史库存数量
+5、销售查询：查看门店商品销售记录，注意时间范围
+6、配送管理：查看门店商品的配送情况
