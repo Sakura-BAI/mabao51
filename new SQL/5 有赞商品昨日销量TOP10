@@ -7,13 +7,13 @@
 SELECT td.goods_name_onl, SUM(td.goods_num) AS  Gdnumber ,SUM(td.pay_amount) as pay_amount, DATE_FORMAT(pay_time,"%Y-%m-%d") as time, td.deal_price FROM trade_detail AS td
 LEFT JOIN trade AS t ON t.id_onl = td.trade_id_onl
 WHERE 
-pay_time >  DATE_FORMAT(DATE_SUB(NOW(),INTERVAL 1 day), '%Y-%m-%d 00:00:00')
+pay_time >  DATE_FORMAT(DATE_SUB(NOW(),INTERVAL 8 day), '%Y-%m-%d 00:00:00')
 AND pay_time < DATE_FORMAT(DATE_SUB(NOW(),INTERVAL 1 day), '%Y-%m-%d 23:59:59')
 AND t.status >1 AND t.status < 9  
 AND td.goods_name_onl NOT LIKE "测试%"
 GROUP BY td.goods_barcode
 ORDER BY  Gdnumber DESC
-LIMIT 5
+LIMIT 10
 
 
 
@@ -21,12 +21,11 @@ LIMIT 5
 SELECT t.store_name,td.goods_name_onl, SUM(td.goods_num) AS  Gdnumber ,SUM(td.pay_amount) as pay_amount, DATE_FORMAT(pay_time,"%Y-%m-%d") as time, td.deal_price FROM trade_detail AS td
 LEFT JOIN trade AS t ON t.id_onl = td.trade_id_onl
 WHERE 
-pay_time >  DATE_FORMAT(DATE_SUB(NOW(),INTERVAL 1 day), '%Y-%m-%d 00:00:00')
+pay_time >  DATE_FORMAT(DATE_SUB(NOW(),INTERVAL 8 day), '%Y-%m-%d 00:00:00')
 AND pay_time < DATE_FORMAT(DATE_SUB(NOW(),INTERVAL 1 day), '%Y-%m-%d 23:59:59')
 AND t.status >1 AND t.status < 9  
 AND td.goods_name_onl NOT LIKE "测试%"
 GROUP BY td.goods_barcode,t.store_id_erp
 ORDER BY  Gdnumber DESC
-LIMIT 50
-
+LIMIT 1000
 
