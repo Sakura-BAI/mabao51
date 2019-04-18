@@ -1,0 +1,12 @@
+
+
+
+
+
+SELECT t.store_id_erp,t.store_name,SUM(t.pay_amount)/7,COUNT(DISTINCT t.consignee_phone)  FROM trade AS t
+WHERE 
+t.status BETWEEN 2 AND 8
+AND 	t.pay_time >= '2019-04-12 00:00:00'
+AND t.pay_time <= '2019-04-18 23:59:59'
+AND store_id_erp != '4000'
+GROUP BY t.store_id_erp
