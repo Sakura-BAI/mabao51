@@ -36,3 +36,17 @@ BETWEEN "2019-04-12 00:00:00"
 AND "2019-04-18 23:59:59" 
 AND gs.sales_channel_id != "O2O"
 GROUP BY gs.salesdepart_id
+
+
+
+
+
+/*门店有购会员数*/
+SELECT gs.salesdepart_id,COUNT(DISTINCT gs.member_id ),gs.  FROM
+goods_sales AS gs
+WHERE 
+gs.create_date 
+BETWEEN "2019-04-12 00:00:00"
+AND "2019-04-18 23:59:59"
+-- AND gs.sales_channel_id = "O2O"
+GROUP BY gs.salesdepart_id
