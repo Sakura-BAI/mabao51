@@ -16,8 +16,6 @@ ORDER BY mmb.create_date
 
 
 
- 
- 
 取小于28 的购买时间 
 SELECT hyfb.*,mmb.mobile,mmb.lastest_cumsume_date,mmb.create_date,'门店老客' from 
 `会员结构分布`  as hyfb
@@ -26,3 +24,15 @@ ON hyfb.`电话号码`  = mmb.mobile
 WHERE mmb.create_date > '2019-03-28 00-00-00' 
 ORDER BY mmb.create_date
 
+
+
+
+头好大,算这个.
+/*门店华创POS新客*/
+SELECT gs.salesdepart_id ,COUNT(mmb.mobile) FROM ms_member_def AS mmb
+LEFT JOIN goods_sales AS gs  ON gs.member_id = mmb.id
+WHERE mmb.create_date
+BETWEEN "2019-04-12 00:00:00"
+AND "2019-04-18 23:59:59" 
+AND gs.sales_channel_id != "O2O"
+GROUP BY gs.salesdepart_id
