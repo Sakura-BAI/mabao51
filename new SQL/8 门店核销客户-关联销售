@@ -8,3 +8,14 @@ SELECT a.salesdepart_id AS org_id, b.mobile ,DAY(a.sales_date ), CONCAT(b.mobile
         AND a.sales_date <= "2019-04-18 23:59:59"
 AND a.sales_type = 1
 AND a.sales_channel_id  = "O2O"
+
+
+
+
+SELECT t.store_name,t.store_id_erp,COUNT(DISTINCT t.consignee_phone)  FROM trade AS t
+WHERE 
+t.status BETWEEN 2 AND 8
+AND 	t.pay_time >= '2019-03-01 00:00:00'
+AND t.pay_time <= '2019-03-31 23:59:59'
+AND store_id_erp != '4000'
+GROUP BY t.store_id_erp
