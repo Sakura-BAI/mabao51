@@ -38,6 +38,15 @@ AND gs.sales_channel_id != "O2O"
 GROUP BY gs.salesdepart_id
 
 
+/*关联销售，非020订单，手机号*/
+SELECT mmb.mobile FROM ms_member_def AS mmb
+LEFT JOIN goods_sales AS gs  ON gs.member_id = mmb.id
+WHERE gs.sales_date
+BETWEEN "2019-03-01 00:00:00"
+AND "2019-04-22 23:59:59" 
+AND gs.sales_channel_id != "O2O"
+-- GROUP BY gs.salesdepart_id
+
 
 
 
