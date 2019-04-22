@@ -24,10 +24,8 @@ ORDER BY  Gdnumber DESC
 
 
 /*
-电商仓库存数量
+电商仓库存数量,加订货数量
 */
-
-
 
 
 SELECT
@@ -68,3 +66,69 @@ GROUP BY
 	gb.bar_code
 ORDER BY
 	all_number DESC
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+/*
+库存数量以及销量表 ,使用FREEDATA 外链接获取有赞订单表.
+*/
+SELECT
+	gb.bar_code AS bar_code,
+	gb.`name` AS NAME,
+	ROUND(sum(number) * (AVG(igs.in_price) / 10000),2) AS sum_price,
+	sum(number) AS all_number,
+  wait_ship.Gdnumber AS  wait_ship_number,
+  already_ship.Gdnumber AS already_ship_number,
+-- 	sum(igs.ori_number) AS ori_number,
+	ROUND(AVG(igs.in_price) / 10000, 2) AS avg_price
+-- 	igs.purchase_price_total/10000  as int_price
+FROM
+	arm_changsha.inv_goods_stock AS igs
+INNER JOIN arm_changsha.goods_base AS gb ON gb.id = igs.goods_id
+LEFT JOIN 
+(
+SELECT td.goods_name_onl,td.goods_barcode, SUM(td.goods_num) AS  Gdnumber FROM mabao51.trade_detail AS td
+LEFT JOIN mabao51.trade AS t ON t.id_onl = td.trade_id_onl
+WHERE 
+	t.pay_time >  DATE_FORMAT(DATE_SUB(NOW(),INTERVAL 30 day), '%Y-%m-%d 00:00:00')
+AND t.pay_time < DATE_FORMAT(NOW(), '%Y-%m-%d 00:00:00')
+
+-- 有赞销量
+-- AND t.status >1 AND t.status < 9  
+-- 有赞待发货
+AND t.status_label_onl = "待发货"    
+AND td.goods_name_onl NOT LIKE "测试%"
+GROUP BY td.goods_barcode
+) AS wait_ship  ON  wait_ship.goods_barcode  = gb.bar_code
+
+LEFT JOIN  (
+
+SELECT td.goods_name_onl,td.goods_barcode, SUM(td.goods_num) AS  Gdnumber FROM mabao51.trade_detail AS td
+LEFT JOIN mabao51.trade AS t ON t.id_onl = td.trade_id_onl
+WHERE 
+	t.pay_time >  DATE_FORMAT(DATE_SUB(NOW(),INTERVAL 30 day), '%Y-%m-%d 00:00:00')
+AND t.pay_time < DATE_FORMAT(NOW(), '%Y-%m-%d 00:00:00')
+
+-- 有赞销量
+AND t.status >1 AND t.status < 9  
+-- 有赞待发货
+-- AND t.status_label_onl = "待发货"    
+AND td.goods_name_onl NOT LIKE "测试%"
+GROUP BY td.goods_barcode
+) AS  already_ship ON  already_ship.goods_barcode  = gb.bar_code
+WHERE
+ igs.del_flag = "0"
+AND gb.`name` NOT  LIKE "测试%"
+AND igs.department_id = 25192
+GROUP BY
+	gb.bar_code
+ORDER BY
+	all_number DESC
+
