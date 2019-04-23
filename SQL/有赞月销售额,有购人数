@@ -3,8 +3,8 @@
   1 取出当日线上的销售额
   2 取出当日每个店的支付购买手机号去重
   3 按门店分组获得金额与日有购会员JOIN ,得到表
-  
-  以后可以直接改,取出详细的商品信息就可以,出商品报表
+
+  以后可以直接改,,取出详细的商品信息就可以,出商品报表
 
 */
 
@@ -32,7 +32,7 @@ store_name,
 store_id_erp
 FROM
 (
-SELECT 
+SELECT
 DISTINCT consignee_phone,
 store_name ,
 store_id_erp
@@ -80,3 +80,7 @@ GROUP BY
 	store_name
 ORDER BY
 	number DESC
+
+
+
+
