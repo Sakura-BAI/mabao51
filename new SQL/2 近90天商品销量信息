@@ -1,6 +1,7 @@
+/*
+  近90天销量信息
 
-
-
+*/
 SELECT td.goods_name_onl,td.goods_barcode, SUM(td.goods_num) AS  Gdnumber ,SUM(td.pay_amount) as pay_amount, td.deal_price FROM trade_detail AS td
 LEFT JOIN trade AS t ON t.id_onl = td.trade_id_onl
 WHERE 

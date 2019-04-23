@@ -1,6 +1,6 @@
 
 
-/* 有赞新客门店分组*/
+/* 有赞线上新客门店分组*/
 SELECT skura.store_id_erp,COUNT(skura.consignee_phone)FROM
 (
 (SELECT DISTINCT 
@@ -27,55 +27,7 @@ GROUP BY skura.store_id_erp
 
 
 
-
-
-/*有赞新客中的门店新客*/
-SELECT skura.store_id_erp ,skura.consignee_phone,skura.consignee_name FROM
-(
-(SELECT DISTINCT 
-t.consignee_phone,
-t.consignee_name,
-t.store_id_erp,
-t.store_name
-FROM  trade AS t
-WHERE  t.status > 1  AND t.status <9 
-AND t.pay_time BETWEEN "2019-04-12 00:00:00" AND "2019-04-18 23:59:59" ) as skura
-LEFT JOIN (
-SELECT DISTINCT 
-t.consignee_phone,
-t.consignee_name,
-t.store_id_erp,
-t.store_name
-FROM  trade AS t
-WHERE  t.status > 1  AND t.status <9 
-AND t.pay_time < "2019-04-12 00:00:00" 
-ORDER BY  t.pay_time DESC) as baixi  ON baixi.consignee_phone = skura.consignee_phone  
-) WHERE baixi.consignee_phone IS NULL 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*本金*/
+/*销售本金华创*/
 	SELECT
 	gs.salesdepart_id,
 	ROUND(
@@ -103,24 +55,6 @@ ORDER BY gs.salesdepart_id
 
 
 
-/*020 订单人数*/
-SELECT gs.salesdepart_id,COUNT(DISTINCT gs.member_id )  FROM
-goods_sales AS gs
-WHERE 
-gs.create_date 
-BETWEEN "2019-04-12 00:00:00"
-AND "2019-04-18 23:59:59"
--- AND gs.sales_channel_id = "O2O"
-GROUP BY gs.salesdepart_id
 
 
-
-/*线上金额有购会员数*/
-SELECT t.store_id_erp,t.store_name,SUM(t.pay_amount)/7,COUNT(DISTINCT t.consignee_phone)  FROM trade AS t
-WHERE 
-t.status BETWEEN 2 AND 8
-AND 	t.pay_time >= '2019-04-12 00:00:00'
-AND t.pay_time <= '2019-04-18 23:59:59'
-AND store_id_erp != '4000'
-GROUP BY t.store_id_erp
 

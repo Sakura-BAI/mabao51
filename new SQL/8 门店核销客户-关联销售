@@ -1,10 +1,8 @@
+/*
+  用来当月核销客户数,以及非核销客户数.进行比对.
+*/
 
-
-
-
-
-
-门店当月线上核销客户
+-- 门店当月线上核销客户 , 取人数时,记得去掉天数.
 SELECT  DISTINCT b.mobile ,DAY(a.sales_date ), CONCAT(b.mobile,"_",DAY(a.sales_date ))
 FROM arm_changsha.goods_sales AS a
 LEFT JOIN arm_changsha.ms_member_def AS b ON b.id = a.member_id
@@ -15,7 +13,7 @@ AND a.sales_channel_id  = "O2O"
 
 
 
-门店全月非O2O 订单
+-- 门店全月非O2O 订单
 SELECT  DISTINCT b.mobile ,DAY(a.sales_date ), CONCAT(b.mobile,"_",DAY(a.sales_date ))
 FROM arm_changsha.goods_sales AS a
 LEFT JOIN arm_changsha.ms_member_def AS b ON b.id = a.member_id
