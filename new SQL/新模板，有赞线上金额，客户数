@@ -10,3 +10,9 @@ AND 	t.pay_time >= '2019-04-12 00:00:00'
 AND t.pay_time <= '2019-04-18 23:59:59'
 AND store_id_erp != '4000'
 GROUP BY t.store_id_erp
+
+
+
+
+
+如何
