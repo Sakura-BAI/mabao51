@@ -1,0 +1,23 @@
+
+/*
+统计周期内，线上有赞新客中的门店新客（华创首购时间在统计周期内或未在华创未产生首购）
+*/
+
+
+
+/*门店华创POS新客
+
+  与线上有赞新客,进行关联,重合的即是门店线上新客
+*/
+SELECT gs.salesdepart_id ,COUNT(DISTINCT mmb.mobile) FROM arm_changsha.ms_member_def AS mmb
+LEFT JOIN arm_changsha.goods_sales AS gs  ON gs.member_id = mmb.id
+WHERE
+gs.sales_date
+BETWEEN "2019-04-19 00:00:00"
+AND "2019-04-23 23:59:59"
+AND (mmb.fisrt_shopping_time
+BETWEEN "2019-04-19 00:00:00"
+AND "2019-04-23 23:59:59"  OR mmb.fisrt_shopping_time IS NULL )
+AND gs.sales_channel_id != "O2O"
+GROUP BY gs.salesdepart_id
+

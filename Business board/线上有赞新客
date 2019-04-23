@@ -1,0 +1,27 @@
+
+
+/*
+线上有赞新客（线上有购会员中有赞新客
+*/
+SELECT skura.store_id_erp,COUNT(skura.consignee_phone)FROM
+(
+(SELECT DISTINCT
+t.consignee_phone,
+t.consignee_name,
+t.store_id_erp,
+t.store_name
+FROM  trade AS t
+WHERE  t.status > 1  AND t.status <9
+AND t.pay_time BETWEEN "2019-04-19 00:00:00" AND "2019-04-23 23:59:59" ) as skura
+LEFT JOIN (
+SELECT DISTINCT
+t.consignee_phone,
+t.consignee_name,
+t.store_id_erp,
+t.store_name
+FROM  trade AS t
+WHERE  t.status > 1  AND t.status <9
+AND t.pay_time < "2019-04-19 00:00:00"
+ORDER BY  t.pay_time DESC) as baixi  ON baixi.consignee_phone = skura.consignee_phone
+) WHERE baixi.consignee_phone IS NULL
+GROUP BY skura.store_id_erp

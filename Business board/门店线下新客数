@@ -1,0 +1,15 @@
+
+
+/*
+门店线下新客（不含线上）：
+华创注册时间在统计周期内且有购买记录的客户，剔除统计周期内的门店线上新客（支付口径）
+*/
+SELECT gs.salesdepart_id AS org_id, gs.member_id
+FROM arm_changsha.goods_sales AS gs
+  LEFT JOIN arm_changsha.ms_member_def AS mmb ON mmb.id = gs.member_id
+  WHERE gs.sales_date >= "%(sales_date)s 00:00:00"
+        AND gs.sales_date <= "%(sales_date)s 23:59:59"
+        AND mmb.create_date >= "%(sales_date)s 00:00:00"
+        AND mmb.create_date <= "%(sales_date)s 23:59:59"
+        AND gs.sales_channel_id  != "O2O"
+  GROUP BY gs.salesdepart_id, gs.member_id

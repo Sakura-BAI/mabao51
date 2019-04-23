@@ -1,0 +1,13 @@
+
+
+/*
+统计周期内：各门店华创POS支付会员客户数剔重
+剔除POS支付中的O2O订单后按照会员编号剔重，不含退款
+*/
+SELECT gs.salesdepart_id AS org_id,COUNT(DISTINCT gs.member_id) AS HC_MAN
+FROM arm_changsha.goods_sales as gs
+WHERE gs.sales_date >= "2019-04-19 00:00:00"
+AND gs.sales_date <= "2019-04-23 23:59:59"
+AND gs.sales_type = 1
+AND gs.sales_channel_id  != "O2O"
+GROUP BY gs.salesdepart_id

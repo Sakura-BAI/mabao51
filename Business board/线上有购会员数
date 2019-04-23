@@ -1,0 +1,22 @@
+
+
+/*
+统计周期内：各门店线上商城支付客户数，按照下单网点统计。
+以商家接单时间为准（拼团为成团时间，预售为尾款支付时间）
+
+trade表的 pay_time 时间包含了正常订单,预售订单.付尾款时间
+拼团订单,支付首款时间.
+  无商家接单时间. 现在情况
+  示例 : 日期4.1 , 4.1号未成团,拼团支付金额100元   , 拼团金额不会计入4.1日.
+         4.4号已成团 ,支付金额100元, 计入4.1日的销售额
+*/
+SELECT
+t.store_id_erp
+COUNT(DISTINCT t.consignee_phone) AS trade_man ,
+FROM mabao51.trade as t
+WHERE
+t.pay_time
+BETWEEN  "2019-04-19 00:00:00"  AND "2019-04-23 23:59:59"
+AND t.status  BETWEEN 2 AND 8
+AND  t.store_id_erp != 4000
+GROUP BY t.store_id_erp
