@@ -1,21 +1,41 @@
 
 
 
-SELECT a.salesdepart_id AS org_id, b.mobile ,DAY(a.sales_date ), CONCAT(b.mobile,"_",DAY(a.sales_date ))
-      FROM arm_changsha.goods_sales AS a
-             LEFT JOIN arm_changsha.ms_member_def AS b ON b.id = a.member_id
-      WHERE a.sales_date >= "2019-04-12 00:00:00"
-        AND a.sales_date <= "2019-04-18 23:59:59"
-AND a.sales_type = 1
+
+
+
+门店当月线上核销客户
+SELECT  DISTINCT b.mobile ,DAY(a.sales_date ), CONCAT(b.mobile,"_",DAY(a.sales_date ))
+FROM arm_changsha.goods_sales AS a
+LEFT JOIN arm_changsha.ms_member_def AS b ON b.id = a.member_id
+WHERE a.sales_date >= "2019-03-01 00:00:00"
+AND a.sales_date <= "2019-03-31 23:59:59"
+AND a.sales_type = 1  
 AND a.sales_channel_id  = "O2O"
 
 
 
+门店全月非O2O 订单
+SELECT  DISTINCT b.mobile ,DAY(a.sales_date ), CONCAT(b.mobile,"_",DAY(a.sales_date ))
+FROM arm_changsha.goods_sales AS a
+LEFT JOIN arm_changsha.ms_member_def AS b ON b.id = a.member_id
+WHERE a.sales_date >= "2019-03-01 00:00:00"
+AND a.sales_date <= "2019-03-31 23:59:59"
+AND a.sales_type = 1  
+AND a.sales_channel_id  != "O2O"
 
-SELECT t.store_name,t.store_id_erp,COUNT(DISTINCT t.consignee_phone)  FROM trade AS t
-WHERE 
-t.status BETWEEN 2 AND 8
-AND 	t.pay_time >= '2019-03-01 00:00:00'
-AND t.pay_time <= '2019-03-31 23:59:59'
-AND store_id_erp != '4000'
-GROUP BY t.store_id_erp
+
+
+
+/*门店实际的核销人数,与华创比对过.*/
+SELECT  
+DISTINCT b.mobile 
+-- ,DAY(a.sales_date ),CONCAT(b.mobile ,"_",DAY(a.sales_date ))
+--  ,SUM(received_money) /10000
+FROM arm_changsha.goods_sales AS a
+LEFT JOIN arm_changsha.ms_member_def AS b ON b.id = a.member_id
+WHERE a.sales_date >= "2019-04-12 00:00:00"
+AND a.sales_date <= "2019-04-18 23:59:59"
+AND a.sales_type = 1  
+AND a.sales_channel_id  = "O2O"
+GROUP BY CONCAT(b.mobile ,"_",DAY(a.sales_date )) 
