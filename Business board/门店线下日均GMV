@@ -1,0 +1,21 @@
+
+/*
+获取门店本金销售额,门店分组
+*/
+SELECT
+	gs.salesdepart_id,
+	ROUND((SUM(gsd.deal_price * gsd.sales_number) - IFNULL(SUM(gsp.gift_balance), 0)) / 10000,2) AS amount
+FROM
+	(
+		SELECT
+			salesdepart_id,
+			id
+		FROM
+			arm_changsha.goods_sales
+		WHERE
+    sales_date BETWEEN "2019-04-19 00:00:00"
+		AND "2019-04-22 23:59:59"
+	) AS gs
+LEFT JOIN arm_changsha.goods_sales_detail AS gsd ON gsd.sales_id = gs.id
+LEFT JOIN arm_changsha.goods_sales_pay_detail gsp ON  CONCAT(gsp.sales_id,'_',gsp.goods_id) = CONCAT(gs.id, '_', gsd.goods_id)
+GROUP BY gs.salesdepart_id

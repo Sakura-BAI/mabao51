@@ -55,7 +55,6 @@ SELECT
 	-- id_onl,
 	COUNT(DISTINCT id_onl) AS DDnumber,
 	number,
-
 	SUM(pay_amount) AS pay_amount,
 	qirimoney,
   DATE_FORMAT(pay_time,"%Y-%m-%d") as time
