@@ -2,6 +2,7 @@
 /*
 统计周期内，各门店线上在华创POS的核销客户数（会员编号剔重，不含退款）
 核销客户数分
+  有待完善
   老
   新
   沉默客
@@ -14,3 +15,28 @@ AND a.sales_date <= "2019-04-23 23:59:59"
 AND a.sales_type = 1
 AND a.sales_channel_id  = "O2O"
 GROUP BY a.salesdepart_id
+
+
+
+
+
+
+-- 老客户核销到天
+-- 核销客户明细
+SELECT  DISTINCT b.mobile ,DAY(a.sales_date ), CONCAT(b.mobile,"_",DAY(a.sales_date ))
+FROM arm_changsha.goods_sales AS a
+LEFT JOIN arm_changsha.ms_member_def AS b ON b.id = a.member_id
+WHERE a.sales_date >= "2019-03-01 00:00:00"
+AND a.sales_date <= "2019-03-31 23:59:59"
+AND a.sales_type = 1
+AND a.sales_channel_id  = "O2O"
+
+
+-- 门店全月非O2O 订单明细
+SELECT  DISTINCT b.mobile ,DAY(a.sales_date ), CONCAT(b.mobile,"_",DAY(a.sales_date ))
+FROM arm_changsha.goods_sales AS a
+LEFT JOIN arm_changsha.ms_member_def AS b ON b.id = a.member_id
+WHERE a.sales_date >= "2019-03-01 00:00:00"
+AND a.sales_date <= "2019-03-31 23:59:59"
+AND a.sales_type = 1
+AND a.sales_channel_id  != "O2O"
