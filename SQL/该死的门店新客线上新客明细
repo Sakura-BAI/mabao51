@@ -1,0 +1,48 @@
+
+
+
+
+/*
+统计周期内，线上有赞新客中的门店新客（华创首购时间在统计周期内或未在华创未产生首购）
+*/
+
+
+
+/*门店华创POS新客
+
+  与线上有赞新客,进行关联,重合的即是门店线上新客
+*/
+SELECT  DISTINCT mmb.mobile,gs.salesdepart_id  FROM arm_changsha.ms_member_def AS mmb
+LEFT JOIN arm_changsha.goods_sales AS gs  ON gs.member_id = mmb.id
+WHERE
+gs.sales_date
+BETWEEN "2019-04-19 00:00:00"
+AND "2019-04-23 00:00:00"
+AND (mmb.fisrt_shopping_time
+BETWEEN "2019-04-19 00:00:00"
+AND "2019-04-23 00:00:00"  OR mmb.fisrt_shopping_time IS NULL )
+AND gs.sales_channel_id != "O2O"
+
+
+SELECT skura.store_id_erp,skura.consignee_phone AS new_man FROM
+(
+(SELECT DISTINCT
+t.consignee_phone,
+t.consignee_name,
+t.store_id_erp,
+t.store_name
+FROM  mabao51.trade AS t
+WHERE  t.status > 1  AND t.status <9
+AND t.pay_time BETWEEN "2019-04-19 00:00:00" AND "2019-04-23 00:00:00" ) as skura
+LEFT JOIN (
+SELECT DISTINCT
+t.consignee_phone,
+t.consignee_name,
+t.store_id_erp,
+t.store_name
+FROM mabao51.trade AS t
+WHERE  t.status > 1  AND t.status <9
+AND t.pay_time < "2019-04-19 00:00:00"
+ORDER BY  t.pay_time DESC) as baixi  ON baixi.consignee_phone = skura.consignee_phone
+) WHERE baixi.consignee_phone IS NULL
+GROUP BY skura.store_id_erp

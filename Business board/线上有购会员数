@@ -11,8 +11,8 @@ trade表的 pay_time 时间包含了正常订单,预售订单.付尾款时间
          4.4号已成团 ,支付金额100元, 计入4.1日的销售额
 */
 SELECT
-t.store_id_erp
-COUNT(DISTINCT t.consignee_phone) AS trade_man ,
+t.store_id_erp ,
+COUNT(DISTINCT t.consignee_phone) AS trade_man
 FROM mabao51.trade as t
 WHERE
 t.pay_time

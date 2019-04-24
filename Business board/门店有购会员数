@@ -11,3 +11,17 @@ AND gs.sales_date <= "2019-04-23 23:59:59"
 AND gs.sales_type = 1
 AND gs.sales_channel_id  != "O2O"
 GROUP BY gs.salesdepart_id
+
+
+
+
+
+/*
+  门店有购全部会员
+*/
+SELECT  a.salesdepart_id,COUNT(DISTINCT a.member_id)
+FROM arm_changsha.goods_sales AS a
+WHERE a.sales_date >= "2019-04-19 00:00:00"
+AND a.sales_date <= "2019-04-23 00:00:00"
+AND a.sales_type = 1
+GROUP BY a.salesdepart_id

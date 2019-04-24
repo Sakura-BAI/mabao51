@@ -1,0 +1,74 @@
+
+
+
+/*
+trade_status = {
+        "0": "未知",
+        "1": "待付款",
+        "2": "采购中",
+        "3": "待出库",
+        "4": "配送中",
+        "5": "待核销",
+        "6": "待打单",
+        "7": "已取货",
+        "8": "已完成",
+        "9": "已关闭",
+    }
+
+
+SELECT TIMESTAMPDIFF(DAY, "2019-04-19 00:00:00" , "2019-04-23 23:59:59" )  相差日期的函数;
+取出线上指定日期的:
+      门店ID
+      门店名称
+      线上日均GMV
+      线上有购人数
+      线上客单价
+*/
+
+DROP TEMPORARY TABLE  IF EXISTS H01;
+DROP TEMPORARY TABLE  IF EXISTS H02;
+
+CREATE TEMPORARY TABLE H01
+SELECT
+t.store_id_erp,t.store_name,
+SUM(t.pay_amount)/TIMESTAMPDIFF(DAY, "2019-04-19 00:00:00" , "2019-04-23 00:00:00" ) AS day_average ,
+COUNT(DISTINCT t.consignee_phone) AS trade_man ,
+SUM(t.pay_amount)/ COUNT(DISTINCT t.consignee_phone) AS menmber_average
+FROM mabao51.trade as t
+WHERE
+t.pay_time
+BETWEEN  "2019-04-19 00:00:00"  AND "2019-04-23 00:00:00"
+AND t.status  BETWEEN 2 AND 8
+AND  t.store_id_erp != 4000
+GROUP BY t.store_id_erp
+;
+
+
+/*
+获取门店本金销售额,门店分组
+*/
+CREATE TEMPORARY TABLE H02
+SELECT
+	gs.salesdepart_id,
+	ROUND((SUM(gsd.deal_price * gsd.sales_number) - IFNULL(SUM(gsp.gift_balance), 0)) / 10000,2)/TIMESTAMPDIFF(DAY, "2019-04-19 00:00:00" , "2019-04-23 00:00:00" ) AS amount
+FROM
+	(
+		SELECT
+			salesdepart_id,
+			id
+		FROM
+			arm_changsha.goods_sales
+		WHERE
+    sales_date BETWEEN "2019-04-19 00:00:00"
+		AND "2019-04-23 00:00:00"
+	) AS gs
+LEFT JOIN arm_changsha.goods_sales_detail AS gsd ON gsd.sales_id = gs.id
+LEFT JOIN arm_changsha.goods_sales_pay_detail gsp ON  CONCAT(gsp.sales_id,'_',gsp.goods_id) = CONCAT(gs.id, '_', gsd.goods_id)
+GROUP BY gs.salesdepart_id
+
+;
+
+
+SELECT H01.*,H02.amount FROM  H01 LEFT JOIN  H02 ON H01.store_id_erp = H02.salesdepart_id
+
+
