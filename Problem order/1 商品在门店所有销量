@@ -1,0 +1,21 @@
+
+
+
+/*
+根据商品条码,门店编号有赞订单查询 总共销售数量
+*/
+SELECT
+ t.id_onl AS 有赞单号,
+	t.consignee_name AS 取货人,
+	t.consignee_phone AS 取货人电话,
+	t.pay_time AS 付款时间,
+	td.goods_num AS 购买数量,
+	t.status_label AS 妈宝状态
+FROM
+	mabao51.trade AS t
+	LEFT JOIN mabao51.trade_detail AS td ON td.trade_id = t.id
+WHERE
+	t.`store_id` = 1023
+	AND td.goods_barcode = '6985296347890'
+	AND t.status BETWEEN '2' AND '8'
+ORDER BY t.pay_time DESC
