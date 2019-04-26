@@ -36,7 +36,7 @@ ORDER BY SUM(t.pay_amount) DESC
 
 /*
 验证门店信息,商品数量
-
+1
 SELECT
 t.store_id_erp,t.store_name,
 SUM(td.pay_amount) AS all_money,
