@@ -19,6 +19,7 @@ MB006
 
 */
 
+
 SELECT t.store_name, td.goods_name, SUM(td.goods_num) AS 购买数量
 	, SUM(td.pay_amount), td.pay_amount, td.goods_barcode_onl
 	, t.status_label AS 妈宝状态
@@ -33,9 +34,10 @@ SELECT t.store_name, td.goods_name, SUM(td.goods_num) AS 购买数量
 	END * SUM(td.goods_num)
 FROM mabao51.trade t
 	LEFT JOIN mabao51.trade_detail td ON td.trade_id = t.id
-WHERE t.order_time BETWEEN "2019-04-18 00:00:00" AND "2019-04-26 00:00:00"
-	AND t.status_label = "待付款"
+WHERE t.pay_time  >= "2019-04-26 00:00:00"
+-- 	AND t.status_label = "待付款"
 	AND td.goods_barcode_onl IN ("X5             ", "Y8-L           ", "Y8-F", "MB006          ", "6949625700183  ", "6924236703570  ", "6941668806709  ", "6941668803883  ", "6924236726586  ", "6941668806648  ", "6924236726623  ", "6941668806754  ", "6941668803890  ", "116011382460120", "116011382880130", "116011383170120")
+ AND t.consignee_name !="刘海林"
 GROUP BY t.store_id_erp, td.goods_barcode_onl
 ORDER BY t.store_id_erp DESC
 LIMIT 100

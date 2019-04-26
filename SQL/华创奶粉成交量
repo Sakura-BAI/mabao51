@@ -1,0 +1,39 @@
+
+
+/*
+  奶粉成交
+  主要是三个表关联。以后用的到
+*/
+
+SELECT gb.`name`,gsd.deal_price/10000,
+SUM(gsd.sales_number)
+ FROM
+arm_changsha.goods_sales_detail as gsd
+LEFT JOIN arm_changsha.goods_base  as gb ON gb.id = gsd.goods_id
+LEFT JOIN arm_changsha.goods_sales as gs ON gsd.sales_id = gs.id
+WHERE
+gb.bar_code IN (
+"8716200710398  " ,
+"8712045031261-1" ,
+"8712045030462  " ,
+"7613035260160  " ,
+"6949756330334  " ,
+"6922244700031  " ,
+"6916457002341  " ,
+"8718117605125  " ,
+"4008976527589  " ,
+"8716200713184  " ,
+"8712045031773  " ,
+"8712045031261  " ,
+"7613035982949  " ,
+"7613035023888  " ,
+"6922244700192  " ,
+"6916457003430  " ,
+"6916457002327  " ,
+"8716200719247  "
+)
+AND gs.sales_date  BETWEEN "2019-01-01 00:00:00" AND "2019-04-27 00:00:00"
+
+-- BETWEEN DATE_FORMAT(date_sub(now(),interval 180 DAY,"%Y-%M%-D 00:00:00")) AND now()
+GROUP BY gb.bar_code
+ORDER BY SUM(gsd.sales_number) DESC
