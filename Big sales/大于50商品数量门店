@@ -1,0 +1,37 @@
+
+
+
+
+td.goods_barcode 商品条码,
+td.goods_name_onl,
+
+SELECT t.store_name,SUM(td.goods_num) AS  Gdnumber ,SUM(td.pay_amount) as pay_amount, td.deal_price FROM mabao51.trade_detail AS td
+LEFT JOIN mabao51.trade AS t ON t.id_onl = td.trade_id_onl
+WHERE
+	t.pay_time  >=  "2019-04-26 00:00:00"
+AND t.status >1 AND t.status < 9
+AND td.goods_name_onl NOT LIKE "测试%"
+AND td.deal_price >=50
+AND td.goods_barcode NOT IN
+(
+"4901301253422",
+"6953574510311",
+"6903148158425",
+"4901301230881",
+"6953574520266",
+"6923589446431",
+"8718117605125",
+"6949756330334",
+"7613035260160",
+"6953574510267",
+"8712045031261",
+"6953574510250",
+"6903148158326"
+)
+AND t.consignee_name !="刘海林"
+AND t.store_id_erp != 4000
+AND td.deal_price >=50
+GROUP BY t.store_id_erp
+ORDER BY  Gdnumber DESC
+
+

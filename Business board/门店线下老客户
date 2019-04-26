@@ -1,0 +1,29 @@
+
+
+
+/*
+  门店线下老客户,
+  用全部客户,去除掉新客户即是老客户.
+*/
+SELECT sakura.salesdepart_id,sakura.member_id  FROM
+(
+SELECT  DISTINCT a.member_id ,a.salesdepart_id
+FROM arm_changsha.goods_sales AS a
+WHERE a.sales_date >= "2019-04-19 00:00:00"
+AND a.sales_date <= "2019-04-23 00:00:00"
+AND a.sales_type = 1
+AND a.salesdepart_id !=4000
+) as sakura
+LEFT JOIN
+(
+SELECT DISTINCT gs.member_id , gs.salesdepart_id AS org_id
+FROM arm_changsha.goods_sales AS gs
+LEFT JOIN arm_changsha.ms_member_def AS mmb ON mmb.id = gs.member_id
+  WHERE gs.sales_date >= "2019-04-19 00:00:00"
+        AND gs.sales_date <= "2019-04-23 00:00:00"
+        AND mmb.create_date >= "2019-04-19 00:00:00"
+        AND mmb.create_date <= "2019-04-23 00:00:00"
+        AND gs.sales_channel_id  != "O2O"
+				AND gs.salesdepart_id !=4000
+) as baixi  ON sakura.member_id  = baixi.member_id
+WHERE baixi.member_id IS NULL

@@ -3,6 +3,7 @@
 
 /*
 根据商品条码,门店编号有赞订单查询 总共销售数量
+prism-player
 */
 SELECT
  t.id_onl AS 有赞单号,

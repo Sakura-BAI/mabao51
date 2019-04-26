@@ -1,0 +1,9 @@
+
+
+SELECT DISTINCT mmb.mobile
+FROM arm_changsha.goods_sales gs
+	LEFT JOIN arm_changsha.ms_member_def mmb ON mmb.id = gs.member_id
+WHERE gs.sales_date >= "2019-03-20 00:00:00"
+	AND gs.sales_date <= "2019-04-25 23:59:59"
+	AND gs.sales_channel_id != "O2O"
+	AND gs.sales_type = 1
