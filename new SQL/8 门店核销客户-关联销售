@@ -37,3 +37,26 @@ AND a.sales_date <= "2019-04-18 23:59:59"
 AND a.sales_type = 1  
 AND a.sales_channel_id  = "O2O"
 GROUP BY CONCAT(b.mobile ,"_",DAY(a.sales_date )) 
+
+
+--
+
+SELECT  DISTINCT b.mobile ,DAY(a.sales_date ), CONCAT(b.mobile,"_",DAY(a.sales_date )),SUM(a.real_pay)/10000,a.salesdepart_id
+FROM arm_changsha.goods_sales AS a
+LEFT JOIN arm_changsha.ms_member_def AS b ON b.id = a.member_id
+WHERE a.sales_date >= "2019-04-26 00:00:00"
+AND a.sales_date <= "2019-04-29 00:00:00"
+AND a.sales_type = 1
+AND a.sales_channel_id  = "O2O"
+GROUP BY CONCAT(b.mobile,"_",DAY(a.sales_date ))
+
+;
+
+SELECT  DISTINCT b.mobile ,DAY(a.sales_date ), CONCAT(b.mobile,"_",DAY(a.sales_date )),SUM(a.real_pay/10000),a.salesdepart_id
+FROM arm_changsha.goods_sales AS a
+LEFT JOIN arm_changsha.ms_member_def AS b ON b.id = a.member_id
+WHERE a.sales_date >= "2019-04-26 00:00:00"
+AND a.sales_date <= "2019-04-29 00:00:00"
+AND a.sales_type = 1
+AND a.sales_channel_id  != "O2O"
+GROUP BY CONCAT(b.mobile,"_",DAY(a.sales_date ))

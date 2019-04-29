@@ -35,3 +35,39 @@ AND "2019-04-23 23:59:59"  OR mmb.fisrt_shopping_time IS NULL )
 AND gs.sales_channel_id != "O2O"
 GROUP BY gs.salesdepart_id
 
+
+
+
+
+
+
+
+
+
+
+CREATE TEMPORARY TABLE  base
+SELECT
+DISTINCT t.consignee_phone,
+t.store_id_erp
+
+FROM mabao51.trade as t
+WHERE
+t.pay_time
+BETWEEN  "2019-04-26 00:00:00"  AND "2019-04-27 00:00:00"
+AND t.status  BETWEEN 2 AND 8
+AND  t.store_id_erp != 4000
+
+/*新口径*/
+SELECT a.*  ,
+COUNT(DISTINCT a.`电话号码` )
+-- mmb.create_date,
+-- mmb.update_date,
+-- mmb.fisrt_shopping_time
+FROM  base as a
+LEFT JOIN
+arm_changsha.ms_member_def as mmb on mmb.mobile  = a.`电话号码`
+WHERE
+mmb.fisrt_shopping_time   >= "2019-04-26 00:00:00"
+OR mmb.fisrt_shopping_time IS NULL
+AND mmb.create_date >"2019-04-20 00:00:00"
+GROUP BY a.`门店`

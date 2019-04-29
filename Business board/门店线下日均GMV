@@ -13,8 +13,8 @@ FROM
 		FROM
 			arm_changsha.goods_sales
 		WHERE
-    sales_date BETWEEN "2019-04-19 00:00:00"
-		AND "2019-04-22 23:59:59"
+    sales_date BETWEEN "2019-04-26 00:00:00"
+		AND "2019-04-28 00:00:00"
 	) AS gs
 LEFT JOIN arm_changsha.goods_sales_detail AS gsd ON gsd.sales_id = gs.id
 LEFT JOIN arm_changsha.goods_sales_pay_detail gsp ON  CONCAT(gsp.sales_id,'_',gsp.goods_id) = CONCAT(gs.id, '_', gsd.goods_id)

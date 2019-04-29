@@ -24,13 +24,13 @@ SELECT TIMESTAMPDIFF(DAY, "2019-04-19 00:00:00" , "2019-04-23 23:59:59" )  ç›¸å·
 */
 SELECT
 t.store_id_erp,t.store_name,
-SUM(t.pay_amount)/TIMESTAMPDIFF(DAY, "2019-04-19 00:00:00" , "2019-04-23 23:59:59" ) AS day_average ,
+SUM(t.pay_amount)/TIMESTAMPDIFF(DAY, "2019-04-26 00:00:00" , "2019-04-28 00:00:00" ) AS day_average ,
 COUNT(DISTINCT t.consignee_phone) AS trade_man ,
 SUM(t.pay_amount)/ COUNT(DISTINCT t.consignee_phone) AS menmber_average
 FROM mabao51.trade as t
 WHERE
 t.pay_time
-BETWEEN  "2019-04-19 00:00:00"  AND "2019-04-23 23:59:59"
+BETWEEN  "2019-04-26 00:00:00"  AND "2019-04-28 00:00:00"
 AND t.status  BETWEEN 2 AND 8
 AND  t.store_id_erp != 4000
 GROUP BY t.store_id_erp

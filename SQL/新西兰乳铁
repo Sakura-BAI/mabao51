@@ -1,0 +1,36 @@
+
+SELECT t.org_id_erp,t.org_name,SUM(td.goods_num) AS  Gdnumber ,SUM(td.pay_amount) as pay_amount, td.deal_price
+FROM mabao51.trade_detail_onl AS td
+LEFT JOIN mabao51.trade_onl as t ON t.id = td.trade_onl_id
+WHERE
+-- 	t.pay_time  >=  "2019-04-26 00:00:00"
+AND t.status >1 AND t.status < 9
+AND td.goods_name_onl NOT LIKE "测试%"
+-- AND td.deal_price >=50
+AND td.goods_barcode = "9421031472412"
+AND t.org_id_erp != 4000
+GROUP BY t.org_id_erp
+ORDER BY  Gdnumber DESC
+
+;
+
+SELECT gs.salesdepart_id,SUM(gsd.sales_number),SUM(gsd.deal_price)/10000 FROM arm_changsha.goods_sales_detail AS gsd
+LEFT JOIN  arm_changsha.goods_sales AS gs ON gs.id  = gsd.sales_id
+WHERE
+gsd.barcode = "9421031472412"
+AND gs.sales_type = 1
+AND gs.sales_channel_id != "O2O"
+-- AND gs.salesdepart_id = 1031
+-- GROUP BY gs.salesdepart_id
+ORDER BY SUM(gsd.sales_number) DESC
+
+
+
+
+
+
+
+
+
+
+
