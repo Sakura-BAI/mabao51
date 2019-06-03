@@ -1,0 +1,16 @@
+
+
+/*订单退货状态疑问，部分退货怎么办。
+需要时间校验
+*/
+
+SELECT
+t.org_name,t.id_onl,t.status_label,td.goods_name,td.goods_barcode,td.goods_num,td.deal_price,td.pay_amount,t.coupon_amount,t.pay_time,t.confirm_time,t.finish_time,ro.apply_time,ro.pay_amount
+FROM trade_detail_onl as  td
+LEFT JOIN trade_onl as t ON t.id = td.trade_onl_id
+LEFT JOIN refund_onl as  ro on ro.trade_onl_id_onl = t.id_onl
+WHERE
+ t.confirm_time BETWEEN "2019-05-15 00:00:00"  AND "2019-05-22 00:00:00"
+AND t.org_id_erp NOT IN (4000, "")
+GROUP BY t.id_onl,td.goods_barcode
+LIMIT 1000

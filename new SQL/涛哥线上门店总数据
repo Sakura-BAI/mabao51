@@ -1,0 +1,26 @@
+SELECT
+t.org_id_erp,t.org_name,
+SUM(t.pay_amount) ,
+COUNT(DISTINCT t.consignee_phone) AS trade_man ,
+SUM(t.pay_amount)/ COUNT(DISTINCT t.consignee_phone) AS menmber_average
+FROM trade_onl as t
+WHERE
+confirm_time
+BETWEEN  "2019-01-01 00:00:00"  AND "2019-02-01 00:00:00"
+AND t.status  BETWEEN 2 AND 8
+-- AND  t.org_id_erp
+--  IN (
+-- 4000,25194
+-- )
+GROUP BY t.org_id_erp
+
+,
+
+
+SELECT
+DISTINCT t.consignee_phone AS trade_man
+FROM trade_onl as t
+WHERE
+confirm_time
+BETWEEN  "2019-02-01 00:00:00"  AND "2019-03-01 00:00:00"
+AND t.status  BETWEEN 2 AND 8

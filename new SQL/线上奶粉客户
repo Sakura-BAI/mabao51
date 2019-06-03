@@ -1,0 +1,18 @@
+
+/*线上奶粉客户*/
+
+SELECT tn.org_id_erp, tn.id_onl, tn.org_name, tn.id, tn.consignee_phone
+	, tn.consignee_name, tn.confirm_time, tn.consign_time
+FROM mabao51.trade_onl tn
+	LEFT JOIN mabao51.trade_detail_onl td ON tn.id = td.trade_onl_id
+WHERE tn.consignee_phone IS NOT NULL
+	AND tn.consign_time IS NOT NULL
+	AND td.goods_barcode IN (
+		SELECT gb.bar_code
+		FROM arm_changsha.goods_base gb
+			LEFT JOIN arm_changsha.goods_kind gk ON gk.id = gb.kind_id
+		WHERE gk.code LIKE "01%"
+	)
+	AND tn.org_id NOT IN (4000, 4004, "")
+	AND tn.order_time < "2019-05-29 00:00:00"
+GROUP BY tn.consignee_phone

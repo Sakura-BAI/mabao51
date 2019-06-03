@@ -1,0 +1,19 @@
+
+
+/*有赞线上首购时间在大于华创首购时间为新客*/
+SELECT yzm1.org_id_erp,yzm1.consignee_phone AS `会员手机号码`, yzm1.confirm_time AS `线上首购接单时间`,yzm1.order_time AS `线上首购下单时间` , hcm.id AS 华创会员ID, hcm.create_date AS 华创会员创建时间
+	, hcm.fisrt_shopping_time AS 华创会员首购时间
+FROM
+-- 	全部订单人数
+	(
+	SELECT tn.org_id_erp,tn.id, tn.consignee_phone, tn.confirm_time, MIN(tn.order_time) AS order_time
+		, tn.consign_time
+	FROM mabao51.trade_onl tn
+	WHERE tn.consignee_phone IS NOT NULL
+		AND tn.org_id NOT IN (4000, 4004)
+	GROUP BY tn.consignee_phone
+) yzm1,
+arm_changsha.ms_member_def hcm
+WHERE hcm.mobile = yzm1.consignee_phone
+-- 	AND yzm1.consignee_phone = yzm2.consignee_phone
+	AND hcm.create_date >= yzm1.order_time

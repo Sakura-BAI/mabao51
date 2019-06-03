@@ -1,0 +1,117 @@
+
+
+/*
+配送单制作,缺少商品规格,以及库存查询.
+查询是否有库存进行发货.
+真正的配送单制作。 依次作为配送单配送.
+*/
+
+
+DROP TEMPORARY TABLE  IF EXISTS baixi;
+CREATE TEMPORARY TABLE  baixi
+SELECT  gb.bar_code AS bar_code, gb.`name` AS NAME
+	, ROUND(SUM(number) * (AVG(igs.in_price) / 10000), 2) AS sum_price
+	, SUM(igs.number) AS all_number
+	, ROUND(AVG(igs.in_price) / 10000, 2) AS avg_price
+FROM arm_changsha.inv_goods_stock igs
+	INNER JOIN arm_changsha.goods_base gb ON gb.id = igs.goods_id
+WHERE igs.del_flag = "0"
+	AND gb.`name` NOT LIKE "测试%"
+	AND igs.department_id IN (25192,1000)
+	AND gb.bar_code IN (
+	SELECT gb.bar_code FROM arm_changsha.inv_goods_stock igs
+	INNER JOIN arm_changsha.goods_base gb ON gb.id = igs.goods_id
+	WHERE igs.department_id = 25192
+)
+GROUP BY gb.bar_code
+ORDER BY igs.department_id DESC
+;
+
+/*
+	门店所有库存
+*/
+DROP TEMPORARY TABLE  IF EXISTS HEBAIXI;
+CREATE TEMPORARY TABLE  HEBAIXI
+SELECT  igs.department_id,CONCAT(igs.department_id,"_",gb.bar_code) as sid ,gb.bar_code AS bar_code, gb.`name` AS NAME
+	, ROUND(SUM(number) * (AVG(igs.in_price) / 10000), 2) AS sum_price
+	, SUM(igs.number) AS all_number
+	, ROUND(AVG(igs.in_price) / 10000, 2) AS avg_price
+FROM arm_changsha.inv_goods_stock igs
+	INNER JOIN arm_changsha.goods_base gb ON gb.id = igs.goods_id
+WHERE igs.del_flag = "0"
+	AND igs.`status` = 1
+	AND gb.`name` NOT LIKE "测试%"
+	AND igs.department_id NOT IN (25192,1000,4000)
+	AND gb.bar_code IN (
+	SELECT gb.bar_code FROM arm_changsha.inv_goods_stock igs
+	INNER JOIN arm_changsha.goods_base gb ON gb.id = igs.goods_id
+	WHERE igs.department_id = 25192
+)
+GROUP BY gb.bar_code,igs.department_id
+ORDER BY igs.department_id DESC
+;
+
+
+/*门店待核销库存*/
+DROP TEMPORARY TABLE  IF EXISTS MDKC;
+CREATE TEMPORARY TABLE  MDKC
+SELECT t.org_name,CONCAT(tg.org_id,"_",tg.goods_barcode) as sid,tg.org_id,tg.goods_barcode,tg.goods_name,COUNT(tg.goods_barcode) AS number FROM mabao51.trade_goods_onl as tg
+LEFT JOIN mabao51.trade_onl as t on tg.trade_onl_id = t.id
+WHERE
+tg.org_id != 4000
+-- AND t.confirm_time BETWEEN "2019-05-12 00:00:00" AND "2019-05-15 00:00:00"
+-- AND t.`status`  = 5
+AND tg.`status`  = 4
+and tg.goods_name NOT LIKE "%测试%"
+-- AND t.id_onl = "E20190428160058012700009"
+GROUP BY tg.org_id,tg.goods_barcode
+;
+
+
+
+/*门店可用库存*/
+DROP TEMPORARY TABLE  IF EXISTS MDKYKC;
+CREATE TEMPORARY TABLE  MDKYKC
+SELECT  H.*,IFNULL(H.all_number - M.number, H.all_number) as MD_mumber FROM HEBAIXI AS H LEFT JOIN MDKC AS M ON H.sid = M.sid
+
+;
+
+/*
+	T 周期内，待发货制作配送单商品。
+*/
+DROP TEMPORARY TABLE  IF EXISTS sakura;
+CREATE TEMPORARY TABLE  sakura
+SELECT t.id_onl ,tg.id,t.`status`,t.status_label,tg.`status`as 状态,tg.status_label as status_labelX,t.confirm_time,t.org_name,tg.org_id,1204 as invcode,t.consignee_name,t.consignee_phone,tg.goods_barcode,tg.goods_name,COUNT(tg.goods_barcode) AS number FROM mabao51.trade_goods_onl as tg
+LEFT JOIN mabao51.trade_onl as t on tg.trade_onl_id = t.id
+WHERE
+tg.org_id != 4000
+-- AND t.confirm_time BETWEEN "2019-05-27 00:00:00" AND "2019-05-28 00:00:00"
+-- AND t.confirm_time BETWEEN "2019-05-01 00:00:00" AND "2019-05-15 00:00:00"
+AND t.confirm_time < "2019-05-27 00:00:00"
+AND t.`status` BETWEEN 2 AND 8
+AND tg.`status`  BETWEEN 2 AND 2
+and tg.goods_name NOT LIKE "%测试%"
+-- AND t.id_onl = "E20190428160058012700009"
+-- 6798532102036-1 ，NULL
+GROUP BY t.id_onl,tg.goods_barcode
+;
+
+
+
+SELECT s.*,b.all_number as 仓库可用库存,c.MD_mumber as 门店可用库存 FROM baixi as b RIGHT JOIN sakura as s on b.bar_code = s.goods_barcode
+LEFT JOIN MDKYKC AS c ON c.sid = CONCAT(s.org_id,"_",s.goods_barcode)
+WHERE
+s.goods_barcode NOT IN (6944639802717)
+-- WHERE
+-- id_onl = "E20190515160924067500013"
+LIMIT 3000
+
+
+
+;
+
+
+
+/*可用库存没有,为空*/
+
+
