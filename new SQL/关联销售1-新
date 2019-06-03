@@ -1,0 +1,62 @@
+
+
+/*核销人数*/
+SELECT  DISTINCT a.member_id,b.mobile,b.`name` ,SUM(a.real_pay)/10000,a.salesdepart_id,sys.`name`
+-- CASE WHEN a.sales_channel_id  = "POS" AND a.sales_channel_id  = "O2O" THEN 1 ELSE 0 END AS XIAO
+-- ,a.id
+-- ,a.sales_date,a.id,a.sales_channel_id
+--  ,DAY(a.sales_date ),CONCAT(b.mobile,"_",DAY(a.sales_date )),a.salesdepart_id
+-- ,SUM(a.real_pay)/10000,a.salesdepart_id
+FROM arm_changsha.goods_sales AS a
+LEFT JOIN arm_changsha.ms_member_def AS b ON b.id = a.member_id
+LEFT JOIN arm_changsha.sys_office  AS sys on sys.id = a.salesdepart_id
+WHERE
+a.sales_date BETWEEN "2019-04-01 00:00:00" AND "2019-05-01 00:00:00"
+AND a.sales_type = 1
+and a.sales_channel_id = "O2O"
+GROUP BY a.member_id
+ORDER BY b.mobile ;
+
+/*奶粉客户*/
+
+SELECT  mmb.mobile,mmb.`name`,gs.id,gs.sales_date
+FROM arm_changsha.goods_sales_detail as gsd
+LEFT JOIN  arm_changsha.goods_sales as gs on gs.id = gsd.sales_id
+LEFT JOIN  arm_changsha.ms_member_def as mmb on mmb.id = gs.member_id
+WHERE gsd.barcode IN (
+SELECT  gb.bar_code FROM  arm_changsha.goods_base AS gb
+LEFT JOIN  arm_changsha.goods_kind  AS gk ON  gk.id = gb.kind_id
+WHERE gk.code LIKE "0112%"
+)
+GROUP BY mmb.mobile
+
+/*是否关联销售*/
+DROP TEMPORARY TABLE  IF EXISTS baixi;
+CREATE TEMPORARY TABLE  baixi
+SELECT  DISTINCT b.mobile,b.`name` ,DAY(a.sales_date ), CONCAT(b.mobile,"_",DAY(a.sales_date )) as b1,SUM(a.real_pay)/10000 as XFMN,a.salesdepart_id,a.sales_channel_id
+FROM arm_changsha.goods_sales AS a
+LEFT JOIN arm_changsha.ms_member_def AS b ON b.id = a.member_id
+WHERE
+a.sales_date BETWEEN "2019-04-01 00:00:00" AND "2019-05-01 00:00:00"
+AND a.sales_type = 1
+AND a.sales_channel_id  = "O2O"
+GROUP BY CONCAT(b.mobile,"_",DAY(a.sales_date ))
+;
+
+DROP TEMPORARY TABLE  IF EXISTS sakura;
+CREATE TEMPORARY TABLE  sakura
+SELECT  DISTINCT b.mobile,b.`name` ,DAY(a.sales_date ),a.sales_date, CONCAT(b.mobile,"_",DAY(a.sales_date )) as s1 ,SUM(a.real_pay)/10000 as money,a.salesdepart_id,a.sales_channel_id
+FROM arm_changsha.goods_sales AS a
+LEFT JOIN arm_changsha.ms_member_def AS b ON b.id = a.member_id
+WHERE
+a.sales_date BETWEEN "2019-04-01 00:00:00" AND "2019-05-01 00:00:00"
+AND a.sales_type = 1
+AND a.sales_channel_id  !=  "O2O"
+GROUP BY CONCAT(b.mobile,"_",DAY(a.sales_date ))
+;
+
+SELECT s.*,b.sales_channel_id as qudao,b.XFMN  FROM sakura as s INNER  JOIN baixi as b ON s.s1 = b.b1 ;
+
+
+/*关联消费金额与人数*/
+SELECT s.mobile,s.name,SUM(s.money) FROM sakura as s INNER  JOIN baixi as b ON s.s1 = b.b1 GROUP BY s.mobile ;

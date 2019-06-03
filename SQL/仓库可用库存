@@ -1,0 +1,81 @@
+/*
+  电商仓加优康仓库存
+*/
+DROP TEMPORARY TABLE  IF EXISTS baixi;
+CREATE TEMPORARY TABLE  baixi
+SELECT  gb.bar_code AS bar_code, gb.`name` AS NAME
+	, ROUND(SUM(number) * (AVG(igs.in_price) / 10000), 2) AS sum_price
+	, SUM(number) AS all_number
+	, ROUND(AVG(igs.in_price) / 10000, 2) AS avg_price
+FROM arm_changsha.inv_goods_stock igs
+	INNER JOIN arm_changsha.goods_base gb ON gb.id = igs.goods_id
+WHERE igs.del_flag = "0"
+	AND gb.`name` NOT LIKE "测试%"
+	AND igs.department_id IN (25192,1000)
+	AND gb.bar_code IN (
+	SELECT gb.bar_code FROM arm_changsha.inv_goods_stock igs
+	INNER JOIN arm_changsha.goods_base gb ON gb.id = igs.goods_id
+	WHERE igs.department_id = 25192
+)
+GROUP BY gb.bar_code
+ORDER BY igs.department_id DESC
+;
+
+
+
+
+/*
+  待出库库存
+*/
+DROP TEMPORARY TABLE  IF EXISTS sakura;
+CREATE TEMPORARY TABLE  sakura
+SELECT tg.status_label,tg.goods_barcode,tg.goods_name,COUNT(tg.goods_barcode) AS number FROM mabao51.trade_goods_onl_4_bi as tg
+LEFT JOIN mabao51.trade_onl as t on tg.trade_onl_id = t.id
+WHERE
+tg.org_id != 4000
+AND tg.`status` = 2
+and tg.goods_name NOT LIKE "%测试%"
+GROUP BY goods_barcode
+;
+
+/*
+    实际结果
+*/
+SELECT b.bar_code,b.NAME,b.all_number,IFNULL((b.all_number - s.number),b.all_number) as 可用库存, s.number,b.sum_price,b.avg_price   FROM baixi as b LEFT JOIN sakura as s on b.bar_code = s.goods_barcode LIMIT 3000
+
+;
+/*
+  sueprset 使用SQL
+*/
+
+SELECT b.*, IFNULL(b.all_number - s.number, b.all_number) AS 可用库存
+FROM (
+	SELECT gb.bar_code AS bar_code, gb.`name` AS NAME
+		, ROUND(SUM(number) * (AVG(igs.in_price) / 10000), 2) AS sum_price
+		, SUM(number) AS all_number
+		, ROUND(AVG(igs.in_price) / 10000, 2) AS avg_price
+	FROM arm_changsha.inv_goods_stock igs
+		INNER JOIN arm_changsha.goods_base gb ON gb.id = igs.goods_id
+	WHERE igs.del_flag = "0"
+		AND gb.`name` NOT LIKE "测试%"
+		AND igs.department_id IN (25192, 1000)
+		AND gb.bar_code IN (
+			SELECT gb.bar_code
+			FROM arm_changsha.inv_goods_stock igs
+				INNER JOIN arm_changsha.goods_base gb ON gb.id = igs.goods_id
+			WHERE igs.department_id = 25192
+		)
+	GROUP BY gb.bar_code
+	ORDER BY igs.department_id DESC
+) b
+	LEFT JOIN (
+		SELECT tg.status_label, tg.goods_barcode, tg.goods_name, COUNT(tg.goods_barcode) AS number
+		FROM mabao51.trade_goods_onl tg
+			LEFT JOIN mabao51.trade_onl t ON tg.trade_onl_id = t.id
+		WHERE tg.org_id != 4000
+			AND tg.`status` = 2
+			AND tg.goods_name NOT LIKE "%测试%"
+		GROUP BY goods_barcode
+	) s
+	ON b.bar_code = s.goods_barcode
+LIMIT 3000

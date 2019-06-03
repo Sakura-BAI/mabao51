@@ -4,22 +4,30 @@
 线上有赞新客（线上有购会员中有赞新客
 
 */
-SELECT skura.store_id_erp, COUNT(skura.consignee_phone) AS new_man
+SELECT skura.org_id_erp, COUNT(skura.consignee_phone) AS new_man
 FROM (
-	SELECT DISTINCT t.consignee_phone, t.consignee_name, t.store_id_erp, t.store_name
-	FROM mabao51.trade t
-	WHERE t.status > 1
-		AND t.status < 9
-		AND t.pay_time BETWEEN "2019-04-19 00:00:00" AND "2019-04-23 00:00:00"
+		SELECT   t.consignee_phone, t.consignee_name, t.org_id_erp, t.org_name
+		FROM mabao51.trade_onl  t
+		WHERE
+			t.consignee_phone IS NOT NULL
+      AND t.org_id NOT IN (4000, 4004)
+-- 			t.status > 1
+-- 			AND t.status < 9
+			AND t.confirm_time BETWEEN "2019-05-20 00:00:00"  AND "2019-05-25 00:00:00"
+ 		GROUP BY t.consignee_phone
 ) skura
 	LEFT JOIN (
-		SELECT DISTINCT t.consignee_phone, t.consignee_name, t.store_id_erp, t.store_name
-		FROM mabao51.trade t
-		WHERE t.status > 1
-			AND t.status < 9
-			AND t.pay_time < "2019-04-19 00:00:00"
-		ORDER BY t.pay_time DESC
+		SELECT   t.consignee_phone, t.consignee_name, t.org_id_erp, t.org_name
+		FROM mabao51.trade_onl  t
+		WHERE
+			t.consignee_phone IS NOT NULL
+      AND t.org_id NOT IN (4000, 4004)
+-- 			t.status > 1
+-- 			AND t.status < 9
+			AND t.confirm_time < "2019-05-20 00:00:00"
+		GROUP BY t.consignee_phone
+-- 		ORDER BY t.pay_time DESC
 	) baixi
 	ON baixi.consignee_phone = skura.consignee_phone
 WHERE baixi.consignee_phone IS NULL
-GROUP BY skura.store_id_erp
+-- GROUP BY skura.org_id_erp

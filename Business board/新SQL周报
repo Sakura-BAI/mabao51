@@ -1,0 +1,165 @@
+-- 日均销售
+SELECT
+t.org_id_erp,t.org_name,
+SUM(t.pay_amount),
+SUM(t.pay_amount)/TIMESTAMPDIFF(DAY, "2019-05-01 00:00:00" , "2019-06-01 00:00:00" ) AS day_average ,
+COUNT(DISTINCT t.consignee_phone) AS trade_man ,
+SUM(t.pay_amount)/ COUNT(DISTINCT t.consignee_phone) AS menmber_average
+FROM trade_onl as t
+WHERE
+t.confirm_time
+BETWEEN  "2019-05-01 00:00:00"  AND "2019-06-01 00:00:00"
+AND t.status  BETWEEN 2 AND 8
+AND  t.org_id_erp NOT IN (4000)
+
+
+
+
+-- 门店全部有购会员
+-- 2019年4月核销新客
+SELECT COUNT(`会员手机号码`),org_id_erp FROM
+(
+SELECT yzm1.org_id_erp,yzm2.consignee_phone AS `会员手机号码`, yzm2.confirm_time AS `线上首购接单时间`,yzm1.order_time AS `线上首购下单时间` , yzm2.consign_time AS `线上首购核销时间`, hcm.id AS 华创会员ID, hcm.create_date AS 华创会员创建时间
+	, hcm.fisrt_shopping_time AS 华创会员首购时间
+FROM
+-- 	全部订单人数
+	(
+	SELECT tn.org_id_erp,tn.id, tn.consignee_phone, tn.confirm_time, MIN(tn.order_time) AS order_time
+		, tn.consign_time
+	FROM mabao51.trade_onl tn
+	WHERE tn.consignee_phone IS NOT NULL
+		AND tn.org_id NOT IN (4000, 4004)
+	GROUP BY tn.consignee_phone
+) yzm1,
+		--  核销订单人数,最早下单时间.
+		(
+		SELECT tn.id, tn.consignee_phone, tn.confirm_time, MIN(tn.order_time) AS order_time
+			, tn.consign_time
+		FROM mabao51.trade_onl tn
+		WHERE tn.consign_time IS NOT NULL
+			AND tn.consignee_phone IS NOT NULL
+			AND tn.org_id > 0
+			AND tn.org_id NOT IN (4000, 4004)
+		GROUP BY tn.consignee_phone
+	) yzm2, arm_changsha.ms_member_def hcm
+WHERE hcm.mobile = yzm1.consignee_phone
+	AND yzm1.consignee_phone = yzm2.consignee_phone
+	AND hcm.create_date >= yzm1.order_time
+	AND yzm2.consign_time BETWEEN "2019-04-01 00:00:00" AND "2019-04-20 00:00:00"
+) as a
+GROUP BY a.org_id_erp
+
+
+-- 2019年4月门店全部新客包含了线上线下.
+SELECT COUNT(a.member_id),a.salesdepart_id FROM
+(
+SELECT
+	*
+FROM
+	(
+	SELECT
+		gs.member_id,
+		gs.salesdepart_id,
+		MIN( gs.sales_date ) sales_date
+	FROM
+		arm_changsha.goods_sales AS gs
+	GROUP BY
+		gs.member_id
+	) AS gs2
+	LEFT JOIN arm_changsha.ms_member_def AS m ON m.id = gs2.member_id
+  LEFT JOIN (
+	SELECT
+		tn.org_id_erp
+	FROM
+		mabao51.trade_onl AS tn
+	WHERE
+	  tn.org_id > 0
+	  AND tn.org_id NOT IN (4000, 4004)
+		AND tn.order_time BETWEEN "2019-04-01 00:00:00" AND "2019-04-20 00:00:00"
+	GROUP BY
+		tn.org_id_erp
+	) AS yzo ON yzo.org_id_erp = gs2.salesdepart_id
+WHERE
+	gs2.sales_date BETWEEN "2019-04-01 00:00:00"
+	AND "2019-04-20 00:00:00"
+	AND m.create_date > "2019-01-01 00:00:00"
+	AND yzo.org_id_erp IS NOT NULL
+) as a
+GROUP BY a.salesdepart_id
+
+
+
+-- 2019年4月41家门店全部购买人数
+
+SELECT
+	*
+FROM
+	(
+	SELECT
+		gs.member_id,
+		gs.salesdepart_id,
+		gs.sales_date
+	FROM
+		arm_changsha.goods_sales AS gs
+	) AS gs2
+  LEFT JOIN (
+	SELECT
+		tn.org_id_erp
+	FROM
+		mabao51.trade_onl AS tn
+	WHERE
+	  tn.org_id NOT IN (4000, 4004)
+		AND tn.org_id > 0
+		AND tn.order_time BETWEEN "2019-04-01 00:00:00" AND "2019-05-01 00:00:00"
+	GROUP BY
+		tn.org_id_erp
+	) AS yzo ON yzo.org_id_erp = gs2.salesdepart_id
+WHERE
+	gs2.sales_date BETWEEN "2019-04-01 00:00:00"
+	AND "2019-05-01 00:00:00"
+	AND yzo.org_id_erp IS NOT NULL
+GROUP BY
+  gs2.member_id
+
+-- 门店核销客户数
+SELECT a.salesdepart_id, COUNT(a.mobile) FROM
+(
+SELECT  a.salesdepart_id,b.mobile
+FROM arm_changsha.goods_sales AS a
+LEFT JOIN arm_changsha.ms_member_def AS b ON b.id = a.member_id
+WHERE a.sales_date >= "2019-04-01 00:00:00"
+AND a.sales_date <= "2019-04-20 00:00:00"
+AND a.sales_type = 1
+AND a.sales_channel_id  = "O2O"
+GROUP BY b.mobile
+) as a
+GROUP BY a.salesdepart_id
+
+
+/*020核销客户*/
+DROP TEMPORARY TABLE  IF EXISTS baixi;
+CREATE TEMPORARY TABLE  baixi
+SELECT  DISTINCT b.mobile,b.`name` ,DAY(a.sales_date ), CONCAT(b.mobile,"_",DAY(a.sales_date )) as b1,SUM(a.real_pay)/10000 as XFMN,a.salesdepart_id,a.sales_channel_id
+FROM arm_changsha.goods_sales AS a
+LEFT JOIN arm_changsha.ms_member_def AS b ON b.id = a.member_id
+WHERE
+a.sales_date BETWEEN "2019-04-01 00:00:00" AND "2019-04-20 00:00:00"
+AND a.sales_type = 1
+AND a.sales_channel_id  = "O2O"
+GROUP BY CONCAT(b.mobile,"_",DAY(a.sales_date ))
+
+;
+/*华创所有客户*/
+DROP TEMPORARY TABLE  IF EXISTS sakura;
+CREATE TEMPORARY TABLE  sakura
+SELECT  DISTINCT b.mobile,b.`name` ,DAY(a.sales_date ),a.sales_date, CONCAT(b.mobile,"_",DAY(a.sales_date )) as s1 ,SUM(a.real_pay)/10000,a.salesdepart_id,a.sales_channel_id
+FROM arm_changsha.goods_sales AS a
+LEFT JOIN arm_changsha.ms_member_def AS b ON b.id = a.member_id
+WHERE
+a.sales_date BETWEEN "2019-04-01 00:00:00" AND "2019-04-20 00:00:00"
+AND a.sales_type = 1
+AND a.sales_channel_id  !=  "O2O"
+GROUP BY CONCAT(b.mobile,"_",DAY(a.sales_date ))
+;
+
+SELECT s.*,b.sales_channel_id as qudao,b.XFMN  FROM sakura as s INNER  JOIN baixi as b ON s.s1 = b.b1 ;

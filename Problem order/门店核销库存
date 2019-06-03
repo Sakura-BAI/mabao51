@@ -1,0 +1,15 @@
+
+
+/*门店待核销库存*/
+DROP TEMPORARY TABLE  IF EXISTS MDKC;
+CREATE TEMPORARY TABLE  MDKC
+SELECT t.org_name,CONCAT(tg.org_id,"_",tg.goods_barcode) as sid,tg.org_id,tg.goods_barcode,tg.goods_name,COUNT(tg.goods_barcode) AS number FROM mabao51.trade_goods_onl as tg
+LEFT JOIN mabao51.trade_onl as t on tg.trade_onl_id = t.id
+WHERE
+tg.org_id != 4000
+-- AND t.confirm_time BETWEEN "2019-05-12 00:00:00" AND "2019-05-15 00:00:00"
+-- AND t.`status`  = 5
+AND tg.`status`  = 4
+and tg.goods_name NOT LIKE "%测试%"
+-- AND t.id_onl = "E20190428160058012700009"
+GROUP BY tg.org_id,tg.goods_barcode

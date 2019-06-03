@@ -13,10 +13,15 @@ SELECT
 	td.goods_num AS 购买数量,
 	t.status_label AS 妈宝状态
 FROM
-	mabao51.trade AS t
-	LEFT JOIN mabao51.trade_detail AS td ON td.trade_id = t.id
+	mabao51.trade_onl AS t
+	LEFT JOIN mabao51.trade_detail_onl AS td ON t.id = td.trade_onl_id
 WHERE
-	t.`store_id` = 1023
-	AND td.goods_barcode = '6985296347890'
+	t.org_id_erp = 1041
+	AND td.goods_barcode = '2018120912314-F'
 	AND t.status BETWEEN '2' AND '8'
 ORDER BY t.pay_time DESC
+
+
+
+/*检查是否核销完*/
+SELECT * FROM `mabao51`.`trade_goods_onl` WHERE `goods_barcode` = '6928971886680-1' ORDER BY `status`

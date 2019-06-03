@@ -1,0 +1,47 @@
+SELECT gs.*,mmb.`name`,gs.real_pay/10000 FROM arm_changsha.goods_sales  AS gs
+LEFT JOIN arm_changsha.ms_member_def AS mmb ON  mmb.id  = gs.member_id
+WHERE
+gs.sales_channel_id  = "O2O"
+AND gs.salesdepart_id = 1029
+AND mmb.`name` IN
+(
+"许金龙 " ,
+"孙振强 " ,
+"赵俊   " ,
+"王丰   " ,
+"孙兰香 " ,
+"方霓   " ,
+"吴涛   " ,
+"陈兆军 " ,
+"胡蓉   " ,
+"李莹莹 " ,
+"何丹   " ,
+"滕晖   " ,
+"何柏喜 " ,
+"吴晓   " ,
+"刘海林 " ,
+"尹清   " ,
+"李龙涛 "
+)
+AND mmb.mobile IN (
+13488116340 ,
+13488155595 ,
+17791292939 ,
+13700275956 ,
+13187858652 ,
+18268121173 ,
+15605711916 ,
+13455933345 ,
+13336104758 ,
+18874189337 ,
+15122252529 ,
+13673376342 ,
+15574993869 ,
+13538305265 ,
+15116223298 ,
+18049232972 ,
+18668101970
+)
+AND gs.sales_type = 1
+AND MONTH(gs.sales_date) = 4
+AND YEAR(gs.sales_date) = 2019

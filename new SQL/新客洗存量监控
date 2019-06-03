@@ -1,0 +1,115 @@
+/*核销口径下的新客*/
+
+
+/*近三月全部核销客户,包含线上*/
+DROP TEMPORARY TABLE  IF EXISTS baixi;
+CREATE TEMPORARY TABLE  baixi
+SELECT gs2.*,yzo.*,sys.`name`,mmb.mobile, mmb.`name` as m_name,mmb.create_date,mmb.fisrt_shopping_time
+FROM (
+	SELECT gs.member_id, gs.salesdepart_id,  sales_date
+	FROM arm_changsha.goods_sales gs
+	WHERE gs.sales_type = 1
+
+) gs2
+	LEFT JOIN (
+		SELECT tn.org_id_erp
+		FROM mabao51.trade_onl tn
+		WHERE tn.org_id NOT IN (4000, 4004)
+			AND tn.org_id > 0
+			AND tn.order_time BETWEEN "2019-03-01 00:00:00" AND "2019-05-01 00:00:00"
+		GROUP BY tn.org_id_erp
+	) yzo
+	ON yzo.org_id_erp = gs2.salesdepart_id
+LEFT JOIN  arm_changsha.ms_member_def as mmb  on mmb.id = gs2.member_id
+LEFT JOIN  arm_changsha.sys_office as sys on sys.id = gs2.salesdepart_id
+WHERE gs2.sales_date BETWEEN DATE_SUB("2019-05-31 00:00:00", INTERVAL 90 DAY) AND "2019-05-31 00:00:00"
+	AND yzo.org_id_erp IS NOT NULL
+	AND gs2.member_id IS NOT NULL
+GROUP BY gs2.member_id
+;
+
+
+
+/*近三月的核销新客*/
+DROP TEMPORARY TABLE  IF EXISTS sakura;
+CREATE TEMPORARY TABLE  sakura
+SELECT yzm1.org_id_erp,yzm2.consignee_phone AS `会员手机号码`, yzm2.confirm_time AS `线上首购接单时间`,yzm1.order_time AS `线上首购下单时间` , yzm2.consign_time AS `线上首购核销时间`, hcm.id AS 华创会员ID, hcm.create_date AS 华创会员创建时间
+	, hcm.fisrt_shopping_time AS 华创会员首购时间
+FROM
+-- 	全部订单人数
+	(
+	SELECT tn.org_id_erp,tn.id, tn.consignee_phone, tn.confirm_time, MIN(tn.order_time) AS order_time
+		, tn.consign_time
+	FROM mabao51.trade_onl tn
+	WHERE tn.consignee_phone IS NOT NULL
+		AND tn.org_id NOT IN (4000, 4004)
+	GROUP BY tn.consignee_phone
+) yzm1,
+		--  核销订单人数,最早下单时间.
+		(
+		SELECT tn.id, tn.consignee_phone, tn.confirm_time, MIN(tn.order_time) AS order_time
+			, tn.consign_time
+		FROM mabao51.trade_onl tn
+		WHERE tn.consign_time IS NOT NULL
+			AND tn.consignee_phone IS NOT NULL
+			AND tn.org_id > 0
+			AND tn.org_id NOT IN (4000, 4004)
+		GROUP BY tn.consignee_phone
+	) yzm2, arm_changsha.ms_member_def hcm
+WHERE hcm.mobile = yzm1.consignee_phone
+	AND yzm1.consignee_phone = yzm2.consignee_phone
+	AND hcm.create_date >= yzm1.order_time
+	AND yzm2.consign_time BETWEEN DATE_SUB("2019-05-31 00:00:00", INTERVAL 90 DAY) AND "2019-05-31 00:00:00"
+
+
+
+;
+
+SELECT b.* FROM baixi as b LEFT JOIN sakura as s on b.mobile = s.`会员手机号码`
+WHERE s.`会员手机号码` IS NULL
+
+
+
+-- SELECT b.salesdepart_id,COUNT(b.mobile) FROM baixi as b LEFT JOIN sakura as s on b.mobile = s.`会员手机号码`
+-- WHERE s.`会员手机号码` IS NULL
+-- GROUP BY b.salesdepart_id
+
+-- SELECT  DATE_SUB("2019-05-31 00:00:00",INTERVAL 90 DAY)
+
+/*
+华创会员创建时间大于线上首购的时间,
+*/
+
+SELECT yzm1.org_id_erp,yzm1.consignee_phone AS `会员手机号码`, yzm1.confirm_time AS `线上首购接单时间`,yzm1.order_time AS `线上首购下单时间` , hcm.id AS 华创会员ID, hcm.create_date AS 华创会员创建时间
+	, hcm.fisrt_shopping_time AS 华创会员首购时间
+FROM
+-- 	全部订单人数
+	(
+	SELECT tn.org_id_erp,tn.id, tn.consignee_phone, tn.confirm_time, MIN(tn.order_time) AS order_time
+		, tn.consign_time
+	FROM mabao51.trade_onl tn
+	WHERE tn.consignee_phone IS NOT NULL
+		AND tn.org_id NOT IN (4000, 4004)
+	GROUP BY tn.consignee_phone
+) yzm1,
+arm_changsha.ms_member_def hcm
+WHERE hcm.mobile = yzm1.consignee_phone
+-- 	AND yzm1.consignee_phone = yzm2.consignee_phone
+	AND hcm.create_date >= yzm1.order_time
+-- 	AND yzm1.consign_time BETWEEN "2019-04-01 00:00:00" AND "2019-04-31 00:00:00"
+
+
+/*新客底层表*/
+
+
+	SELECT tn.org_id_erp,tn.id,tn.coupon,tn.type, tn.consignee_phone, tn.confirm_time, MIN(tn.order_time) AS order_time
+		, tn.consign_time, tg4.goods_name
+	CASE WHEN tn.coupon LIKE "%新客专享%" OR tn.coupon  LIKE "%新人专享满减券%" OR tn.coupon  LIKE "%新人专享%" THEN 1 ELSE 0  END  AS BAIXI
+	FROM mabao51.trade_onl tn
+	LEFT JOIN mabao51.trade_goods_onl  as tg4 ON tn.id = tg4.trade_onl_id
+	WHERE tn.consignee_phone IS NOT NULL
+		AND tn.org_id NOT IN (4000, 4004)
+	  AND tn.consignee_phone = 15073153320
+-- 	  AND tn.coupon LIKE "%新人专享%"
+	GROUP BY tn.consignee_phone
+-- LIMIT 100

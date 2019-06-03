@@ -16,6 +16,18 @@ AND a.sales_type = 1
 AND a.sales_channel_id  = "O2O"
 GROUP BY a.salesdepart_id
 
+/*汇总项*/
+SELECT
+COUNT(DISTINCT b.mobile)
+FROM arm_changsha.goods_sales AS a
+LEFT JOIN arm_changsha.ms_member_def AS b ON b.id = a.member_id
+WHERE
+a.sales_date BETWEEN "2019-04-01 00:00:00"  AND  "2019-05-01 00:00:00"
+AND a.sales_type = 1
+-- AND a.sales_channel_id  = "O2O"
+-- GROUP BY a.salesdepart_id
+AND  a.salesdepart_id NOT IN (1010,1028)
+
 
 
 

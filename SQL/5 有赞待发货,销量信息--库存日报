@@ -87,11 +87,84 @@ ORDER BY
 	
 	
 	
-	
-	
-	
-	
-	
+/*
+T0510 库存更新
+*/
+
+SELECT
+	gb.bar_code AS bar_code,
+	gb.`name` AS NAME,
+	ROUND(
+		sum(number) * (AVG(igs.in_price) / 10000),
+		2
+	) AS sum_price,
+	sum(number) AS all_number,
+	-- 	sum(igs.ori_number) AS ori_number,
+
+	-- igs.purchase_price_total/10000  as int_price,
+	iogd.Dnumber AS Dnumber,
+	iogd.in_stock_number AS stock_number,
+	iogd.DiffNumber AS Diffnumber,
+	ROUND(AVG(igs.in_price) / 10000, 2) AS avg_price,
+  CASE WHEN gb.bar_code IN (
+"6970576860039   ",
+"7613035260160   ",
+"4901301253422   ",
+"6920435380109   ",
+"4444440824      ",
+"5391526950357   ",
+"6916457002327   ",
+"6970344080256   ",
+"6949055944218   ",
+"6903148158425   ",
+"4008976527589   ",
+"8511131322510200",
+"8513131603110100",
+"6920435330111   ",
+"8712045031261   ",
+"9421031472412   ",
+"6903148260302   ",
+"6953574510304   ",
+"6953574510229   ",
+"6953574510311   ",
+"4901301230881   ",
+"6923589446431   ",
+"6953574520266   ",
+"6955919404064   ",
+"6955919404026   ",
+"6953574510267   ",
+"6953574510250   ",
+"6970344080256-1 ",
+"8513131603110102",
+"8511131322510202"
+) THEN "优康库存"
+ELSE "线上库存"
+END AS  type
+FROM
+	arm_mbwy.inv_goods_stock AS igs
+INNER JOIN arm_mbwy.goods_base AS gb ON gb.id = igs.goods_id
+LEFT JOIN (
+	SELECT
+		iogd.goods_id,
+		sum(iogd.number) AS Dnumber,
+		sum(iogd.in_stock_number) AS in_stock_number,
+		sum(iogd.number) - sum(iogd.in_stock_number) AS DiffNumber
+	FROM
+		arm_mbwy.inv_order_goods_detail AS iogd
+	WHERE
+		iogd.create_date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+	GROUP BY
+		iogd.goods_id
+) AS iogd ON iogd.goods_id = igs.goods_id
+WHERE
+	igs.del_flag = "0"
+AND gb.`name` NOT LIKE "测试%"
+AND igs.department_id = 25192
+-- AND gb.bar_code NOT IN
+GROUP BY
+	gb.bar_code
+ORDER BY
+	all_number DESC
 	
 /*
 库存数量以及销量表 ,使用FREEDATA 外链接获取有赞订单表.

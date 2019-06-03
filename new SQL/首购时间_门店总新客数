@@ -1,0 +1,30 @@
+/*取客户首购时间单数*/
+DROP TEMPORARY TABLE  IF EXISTS baixi;
+CREATE TEMPORARY TABLE baixi
+SELECT
+DISTINCT b.mobile
+-- *
+-- a.*,b.mobile,b.create_date,b.fisrt_shopping_time
+FROM arm_changsha.goods_sales AS a
+LEFT JOIN arm_changsha.ms_member_def AS b ON b.id = a.member_id
+WHERE
+a.sales_date BETWEEN "2019-03-01 00:00:00"  AND  "2019-04-01 00:00:00"
+-- AND b.fisrt_shopping_time BETWEEN "2019-03-01 00:00:00"  AND  "2019-04-01 00:00:00"
+AND a.sales_type = 1
+AND a.sales_channel_id  = "O2O"
+-- GROUP BY a.salesdepart_id
+AND  a.salesdepart_id NOT IN (1010,1028)
+-- 验证数据
+-- AND b.mobile IN ("18074583650","13187046108")
+-- GROUP BY b.mobile
+-- ORDER BY a.sales_date
+-- GROUP BY b.mobile
+-- LIMIT 500
+-- HAVING COUNT(b.mobile ) > 2
+
+;
+
+SELECT b.* , a.sales_date,a.`name`, a.id  FROM baixi as b LEFT JOIN hbx.`客户首购时间表` as a  ON b.mobile = a.mobile
+WHERE a.sales_date BETWEEN "2019-04-01 00:00:00"  AND  "2019-05-01 00:00:00"
+AND a.sales_channel_id != "O2O"
+

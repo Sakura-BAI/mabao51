@@ -22,7 +22,7 @@ MB006
 /*
 新表结构
 */
-SELECT t.org_id_erp,t.org_name, td.goods_name, SUM(td.goods_num) AS 购买数量
+SELECT t.id_onl,t.confirm_time,t.org_id_erp,t.org_name, td.goods_name, SUM(td.goods_num) AS 购买数量
 	, SUM(td.pay_amount), td.pay_amount, td.goods_barcode_onl
 	, t.status_label AS 妈宝状态
 	, CASE
@@ -44,4 +44,31 @@ AND t.org_id_erp NOT IN ( 4000 ,25194)
 GROUP BY t.org_id_erp, td.goods_barcode_onl
 ORDER BY t.org_id_erp DESC
 LIMIT 100
+
+
+/*机器人*/
+
+SELECT t.org_id_erp,t.org_name, td.goods_name, SUM(td.goods_num) AS 购买数量
+	, SUM(td.pay_amount), td.pay_amount, td.goods_barcode_onl
+	, t.status_label AS 妈宝状态
+	, CASE
+		WHEN td.goods_name LIKE "%机器人%" THEN 30
+		WHEN td.goods_name LIKE "%多喜爱%凉席%" THEN 10
+		ELSE 20
+	END AS money, CASE
+		WHEN td.goods_name LIKE "%机器人%" THEN 30
+		WHEN td.goods_name LIKE "%多喜爱%凉席%" THEN 10
+		ELSE 20
+	END * SUM(td.goods_num)
+FROM trade_detail_onl AS td
+LEFT JOIN trade_onl as t ON t.id = td.trade_onl_id
+WHERE t.pay_time  >= "2019-04-26 00:00:00"
+-- 	AND t.status_label = "待付款"
+AND  t.`status` BETWEEN 2 AND 8
+AND td.goods_barcode_onl IN ("X5 ")
+AND t.consignee_name !="刘海林"
+AND t.org_id_erp NOT IN (4000)
+GROUP BY t.org_id_erp, td.goods_barcode_onl
+ORDER BY t.org_id_erp DESC
+LIMIT 100;
 

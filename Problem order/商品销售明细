@@ -1,0 +1,11 @@
+
+
+/*
+  查看具体商品,销量
+*/
+SELECT t.*,td.goods_name as tdgoods_name,td.goods_id_onl,td.goods_barcode,td.deal_price as tddeal_price,td.goods_num as tdgoods_num,td.pay_amount as tdpay_amount
+FROM trade_detail_onl AS td
+LEFT JOIN trade_onl as t ON t.id = td.trade_onl_id
+WHERE t.org_id  != 4000
+AND t.`status` BETWEEN 2 AND 8
+AND td.goods_name  LIKE "%夏季新款男士真皮凉鞋%"

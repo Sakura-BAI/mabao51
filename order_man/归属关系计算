@@ -1,0 +1,19 @@
+
+
+/*
+直接取推荐人，获得有归属关系奖励金额。
+*/
+SELECT
+t.id_onl ,t.status_label,t.org_id_erp,t.org_name ,t.consignee_name ,t.consignee_phone ,t.pay_amount,t.pay_time,t.salesman_phone ,t.salesman_name,
+CASE
+WHEN t.pay_amount <=20 THEN 1
+ELSE 3
+END  AS money
+FROM  trade_onl as t
+WHERE
+t.pay_time BETWEEN "2019-04-01 00:00:00" AND "2019-05-01 00:00:00"
+AND t.status  BETWEEN 2 AND 8
+-- AND t.salesman_name = "兰青"
+-- AND t.consignee_phone =
+AND t.consignee_name NOT IN ("吴涛","胡蓉","李莹莹","刘海林","孙兰香","赵俊")
+AND t.org_id_erp NOT IN (4000,25194)

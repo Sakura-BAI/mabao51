@@ -1,0 +1,32 @@
+/* 取客户购买最后一次订单*/
+DROP TEMPORARY TABLE  IF EXISTS baixi;
+CREATE TEMPORARY TABLE baixi
+SELECT tn.org_id_erp,tn.type,tn.id_onl,tn.org_name,tn.id,tn.consignee_phone,tn.consignee_name, tn.confirm_time,
+--     MIN(tn.order_time) AS FIRST_order_time,
+    tn.order_time
+		, tn.consign_time
+	FROM trade_onl tn
+	WHERE tn.consignee_phone IS NOT NULL
+		AND tn.org_id NOT IN (4000, 4004,"")
+    AND tn.order_time < "2019-05-29 00:00:00"
+  ORDER BY tn.order_time DESC
+
+;
+
+/*优化记得分开
+  先查找出人和时间,然后再关联商品.
+
+*/
+SELECT t.*, td.goods_name  FROM(
+SELECT tn.org_id_erp,tn.type,tn.id_onl,tn.org_name,tn.id,tn.consignee_phone,tn.consignee_name, tn.confirm_time,
+    MAX(tn.order_time) AS LAST_order_time,tn.order_time,tn.consign_time
+   FROM baixi AS tn
+GROUP BY  tn.consignee_phone
+) AS t
+LEFT JOIN trade_detail_onl as  td on t.id = td.trade_onl_id
+GROUP BY t.id_onl
+
+//
+
+
+

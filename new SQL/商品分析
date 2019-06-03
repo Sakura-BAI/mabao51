@@ -1,0 +1,11 @@
+
+
+
+/*取商品的上下线时间*/
+SELECT
+td.goods_barcode,td.goods_name,MIN(t.order_time),MAX(t.order_time),TIMESTAMPDIFF(DAY, MIN(t.order_time) , MAX(t.order_time) )
+FROM trade_detail_onl AS td
+LEFT JOIN trade_onl as t ON t.id = td.trade_onl_id
+WHERE t.`status` BETWEEN 2 AND 8
+AND td.goods_barcode  != ""
+GROUP BY td.goods_barcode

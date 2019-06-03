@@ -60,3 +60,38 @@ AND a.sales_date <= "2019-04-29 00:00:00"
 AND a.sales_type = 1
 AND a.sales_channel_id  != "O2O"
 GROUP BY CONCAT(b.mobile,"_",DAY(a.sales_date ))
+;
+
+
+-----------------------------------
+
+
+
+/*020核销客户*/
+DROP TEMPORARY TABLE  IF EXISTS baixi;
+CREATE TEMPORARY TABLE  baixi
+SELECT  DISTINCT b.mobile,b.`name` ,DAY(a.sales_date ), CONCAT(b.mobile,"_",DAY(a.sales_date )) as b1,SUM(a.real_pay)/10000 as XFMN,a.salesdepart_id,a.sales_channel_id
+FROM arm_changsha.goods_sales AS a
+LEFT JOIN arm_changsha.ms_member_def AS b ON b.id = a.member_id
+WHERE
+a.sales_date BETWEEN "2019-04-01 00:00:00" AND "2019-05-01 00:00:00"
+AND a.sales_type = 1
+AND a.sales_channel_id  = "O2O"
+GROUP BY CONCAT(b.mobile,"_",DAY(a.sales_date ))
+
+;
+/*华创所有客户*/
+DROP TEMPORARY TABLE  IF EXISTS sakura;
+CREATE TEMPORARY TABLE  sakura
+SELECT  DISTINCT b.mobile,b.`name` ,DAY(a.sales_date ),a.sales_date, CONCAT(b.mobile,"_",DAY(a.sales_date )) as s1 ,SUM(a.real_pay)/10000,a.salesdepart_id,a.sales_channel_id
+FROM arm_changsha.goods_sales AS a
+LEFT JOIN arm_changsha.ms_member_def AS b ON b.id = a.member_id
+WHERE
+a.sales_date BETWEEN "2019-04-01 00:00:00" AND "2019-05-01 00:00:00"
+AND a.sales_type = 1
+AND a.sales_channel_id  !=  "O2O"
+GROUP BY CONCAT(b.mobile,"_",DAY(a.sales_date ))
+
+;
+
+SELECT s.*,b.sales_channel_id as qudao,b.XFMN  FROM sakura as s INNER  JOIN baixi as b ON s.s1 = b.b1 ;

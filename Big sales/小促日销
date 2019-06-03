@@ -75,3 +75,39 @@ and t.store_id_erp = 1025
 GROUP BY td.goods_barcode
 ORDER BY SUM(td.goods_num) DESC
 */
+
+
+/*小促日销*/
+SELECT
+t.org_id_erp,t.org_name,
+SUM(td.pay_amount) AS all_money,
+COUNT(DISTINCT t.consignee_phone) AS trade_man ,
+SUM(td.pay_amount)/ COUNT(DISTINCT t.consignee_phone) AS menmber_average
+FROM trade_detail_onl AS td
+LEFT JOIN trade_onl as t ON t.id = td.trade_onl_id
+WHERE
+t.confirm_time
+>=  "2019-05-28 00:00:00"
+AND t.status  BETWEEN 2 AND 8
+-- AND t.consignee_phone =
+AND t.consignee_name NOT IN ("吴涛","胡蓉","李莹莹","刘海林","孙兰香","赵俊")
+AND t.org_id_erp NOT IN ( 4000 , 25194)
+GROUP BY t.org_id_erp
+ORDER BY SUM(td.pay_amount)DESC
+
+
+/*会员分析
+
+/*优化记得分开*/
+*/
+	SELECT tn.org_id_erp,tn.id_onl,tn.org_name,tn.id,tn.consignee_phone,tn.consignee_name, tn.confirm_time,
+--     MIN(tn.order_time) AS FIRST_order_time
+    MAX(tn.order_time) AS LAST_order_time
+		, tn.consign_time
+	FROM mabao51.trade_onl tn
+	LEFT JOIN mabao51.trade_detail_onl as  td on tn.id = td.trade_onl_id
+	WHERE tn.consignee_phone IS NOT NULL
+		AND tn.org_id NOT IN (4000, 4004,"")
+    AND tn.order_time < "2019-05-29 00:00:00"
+	GROUP BY tn.consignee_phone
+   LIMIT 10

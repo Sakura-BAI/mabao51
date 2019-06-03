@@ -1,0 +1,20 @@
+
+
+
+/*四月所有销售人员*/
+SELECT  DISTINCT a.member_id,b.mobile,b.`name` ,SUM(a.real_pay)/10000,a.salesdepart_id,sys.`name`
+-- CASE WHEN a.sales_channel_id  = "POS" AND a.sales_channel_id  = "O2O" THEN 1 ELSE 0 END AS XIAO
+-- ,a.id
+-- ,a.sales_date,a.id,a.sales_channel_id
+
+--  ,DAY(a.sales_date ),CONCAT(b.mobile,"_",DAY(a.sales_date )),a.salesdepart_id
+-- ,SUM(a.real_pay)/10000,a.salesdepart_id
+FROM arm_changsha.goods_sales AS a
+LEFT JOIN arm_changsha.ms_member_def AS b ON b.id = a.member_id
+LEFT JOIN arm_changsha.sys_office  AS sys on sys.id = a.salesdepart_id
+WHERE
+a.sales_date BETWEEN "2019-04-01 00:00:00" AND "2019-05-01 00:00:00"
+AND a.sales_type = 1
+GROUP BY a.member_id
+-- ,a.sales_channel_id
+ORDER BY b.mobile
