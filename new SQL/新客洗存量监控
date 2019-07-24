@@ -9,7 +9,6 @@ FROM (
 	SELECT gs.member_id, gs.salesdepart_id,  sales_date
 	FROM arm_changsha.goods_sales gs
 	WHERE gs.sales_type = 1
-
 ) gs2
 	LEFT JOIN (
 		SELECT tn.org_id_erp
@@ -70,6 +69,23 @@ WHERE s.`会员手机号码` IS NULL
 
 
 
+
+
+/*线上活跃会员*/
+
+SELECT t.org_id_erp,COUNT(t.consignee_phone) FROM
+(
+SELECT
+t.org_id_erp,t.consignee_phone FROM trade_onl as t
+WHERE
+t.confirm_time
+BETWEEN DATE_SUB("2019-06-18 00:00:00", INTERVAL 90 DAY) AND "2019-06-18 00:00:00"
+AND t.status  BETWEEN 2 AND 8
+AND  t.org_id_erp NOT IN (4000,"")
+GROUP BY t.consignee_phone) as t
+GROUP BY t.org_id_erp
+
+
 -- SELECT b.salesdepart_id,COUNT(b.mobile) FROM baixi as b LEFT JOIN sakura as s on b.mobile = s.`会员手机号码`
 -- WHERE s.`会员手机号码` IS NULL
 -- GROUP BY b.salesdepart_id
@@ -113,3 +129,26 @@ WHERE hcm.mobile = yzm1.consignee_phone
 -- 	  AND tn.coupon LIKE "%新人专享%"
 	GROUP BY tn.consignee_phone
 -- LIMIT 100
+
+
+
+
+
+
+
+
+
+/*线上所有有够会员*/
+
+SELECT t.org_id_erp,COUNT(t.consignee_phone) FROM
+(
+	SELECT tn.org_id_erp,tn.id, tn.consignee_phone, tn.confirm_time
+		, tn.consign_time
+	FROM mabao51.trade_onl tn
+	WHERE
+   tn.consignee_phone IS NOT NULL
+		AND tn.org_id NOT IN (4000, 4004)
+		and tn.order_time BETWEEN DATE_SUB("2019-06-22 00:00:00", INTERVAL 90 DAY) AND "2019-06-22 00:00:00"
+	GROUP BY tn.consignee_phone
+) as t
+GROUP BY t.org_id_erp

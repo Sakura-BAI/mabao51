@@ -1,0 +1,115 @@
+
+/*给予赵俊*/
+
+SELECT
+	to2.confirm_time,
+	to2.id_onl,
+	to2.org_name,
+	tgo4b.goods_name,
+	tgo4b.goods_barcode,
+	gs.supplier,
+	count( tgo4b.id ) as purchase_num,
+	gs.supplier_ways,
+	gs.specification,
+	gs.ERP_ori_price,
+	"优康妈宝" AS consignee_name,
+	concat( to2.consignee_addr_province, to2.consignee_addr_city, to2.consignee_addr_district, consignee_addr_detail ) AS consignee_addr ,
+	s.`phone`
+FROM
+	trade_goods_onl_4_bi AS tgo4b
+	LEFT JOIN trade_onl AS to2 ON tgo4b.trade_onl_id = to2.id
+	LEFT JOIN goods_base AS gs ON tgo4b.goods_barcode = gs.yzcode
+	LEFT JOIN `mabao51-bi`.shops s ON to2.org_name = s.`name`
+WHERE
+	to2.confirm_time BETWEEN DATE_FORMAT( DATE_SUB( NOW( ), INTERVAL 1 DAY ), '%Y-%m-%d 00:00:00' )
+	AND DATE_FORMAT( NOW( ), '%Y-%m-%d 00:00:00' )
+	and to2.es_id = 2
+	AND to2.STATUS BETWEEN 2
+	AND 8
+	and tgo4b.goods_name not LIKE "%测试%"
+GROUP BY
+	gs.supplier,
+	tgo4b.goods_barcode,
+	to2.org_id_erp
+
+
+
+
+/*新增*/
+
+
+
+
+
+INSERT INTO
+`goods_base` (
+`line_time`              ,
+`purchase`               ,
+`mb_category_one`        ,
+`mb_category_three`      ,
+`yz_category_one`        ,
+`yz_category_two`        ,
+`yzcode`                 ,
+`goods_name`             ,
+`supplier`               ,
+`brand`                  ,
+`specification`          ,
+`supplier_ways`          ,
+`goods_ori_price`        ,
+`Postage`                ,
+`ERP_ori_price`          ,
+`yz_routine_price`       ,
+`yz_acvtie_price`        ,
+`yz_routine_Rebate`      ,
+`yz_active_Rebate`       ,
+`routine_profit_margin`  ,
+`activa_profit_margin`   ,
+`is_drainage`            ,
+`Rebate_percent`         ,
+`routine_Rebate_percent` ,
+`active_Rebate_percent`
+) SELECT
+`上线时间`        ,
+`采购`            ,
+`妈宝一级分类`    ,
+`妈宝三级分类`    ,
+`有赞一级类目`    ,
+`有赞二级类目`    ,
+`有赞条码`        ,
+`商品名称`        ,
+`主供应商`        ,
+`品牌`            ,
+`规格`            ,
+`物流方式`        ,
+`商品裸价`        ,
+`邮费`            ,
+`ERP进价`         ,
+`常规价`          ,
+`活动价`          ,
+`yz_routine_Rebate`      ,
+`yz_active_Rebate`       ,
+`routine_profit_margin`  ,
+`activa_profit_margin`   ,
+`is_drainage`            ,
+`Rebate_percent`         ,
+`routine_Rebate_percent` ,
+`active_Rebate_percent`
+FROM
+    hbx.`上新模板`
+
+
+
+/*条码使用*/
+UPDATE  goods_baseXXX
+as gb  set gb.`code` = "6970045780523" , gb.hccode = "6970045780523"
+where  gb.`code`= "YZ190626000505"
+
+
+/*修改条码*/
+UPDATE  goods_baseXX as gb ,hbx.商品资料更新 as t   set gb.主供应商 = t.供应商 , gb.物流方式 = t.物流方式更新
+where  gb.`有赞条码` = t.商品条码
+
+
+
+ALTER TABLE `goods_base`
+ADD COLUMN `supper_code` varchar(255) DEFAULT NULL AFTER `ERP_deliever_price`;

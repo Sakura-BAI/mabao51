@@ -1,0 +1,71 @@
+-- 根据条码查商品资料
+SELECT * FROM `mabao51`.`goods`
+WHERE
+`barcode` = '6955694580410'
+OR `barcode` = 'YZ190712001754';
+
+-- 修改订单相关各表中的goods_id, A换成B
+UPDATE trade_detail_onl AS tdn SET tdn.goods_id = 5510 WHERE tdn.goods_id = 5663;
+UPDATE trade_goods_onl AS tgn SET tgn.goods_id = 5510 WHERE tgn.goods_id = 5663;
+UPDATE refund_detail_onl AS rdn SET rdn.goods_id = 5510 WHERE rdn.goods_id = 5663;
+UPDATE trade_detail_ofl AS tdf SET tdf.goods_id = 5510 WHERE tdf.goods_id =  5663;
+
+-- 更新goods_id对应的条码、名称
+UPDATE trade_detail_onl AS tdn, goods AS g SET tdn.goods_barcode = g.barcode, tdn.goods_name = g.`name` WHERE tdn.goods_id = g.id AND g.id = 5993;
+UPDATE trade_goods_onl AS tgn, goods AS g SET tgn.goods_barcode = g.barcode, tgn.goods_name = g.`name` WHERE tgn.goods_id = g.id AND g.id = 5993;
+UPDATE refund_detail_onl AS rdn, goods AS g SET rdn.goods_barcode = g.barcode, rdn.goods_name = g.`name` WHERE rdn.goods_id = g.id AND g.id = 5993;
+UPDATE trade_detail_ofl AS tdf, goods AS g SET tdf.goods_barcode = g.barcode, tdf.goods_name = g.`name` WHERE tdf.goods_id = g.id AND g.id = 5993;
+
+
+-- 根据条码更新华创系统的商品id：goods_id_ofl
+UPDATE trade_detail_onl AS tdn, `huachuang-1`.goods_base AS gb SET tdn.goods_id_ofl = gb.id WHERE tdn.goods_barcode = gb.bar_code AND tdn.goods_barcode = "6955694580410";
+UPDATE trade_goods_onl AS tgn, `huachuang-1`.goods_base AS gb SET tgn.goods_id_ofl = gb.id WHERE tgn.goods_barcode = gb.bar_code AND tgn.goods_barcode = "6955694580410";
+UPDATE trade_detail_ofl AS tdf, `huachuang-1`.goods_base AS gb SET tdf.goods_id_ofl = gb.id WHERE tdf.goods_barcode = gb.bar_code AND tdf.goods_barcode = "6955694580410";
+
+
+-- 验证商品修改成功与否
+SELECT * FROM trade_detail_onl as  tdo  WHERE tdo.goods_name LIKE "%易素%"
+SELECT * FROM trade_detail_onl as  tdo  WHERE tdo.goods_barcode  = "YZ190712001754"
+
+
+
+
+
+
+
+/*两个系统*/
+SELECT * FROM `mabao51`.`goods` WHERE `barcode` = 'YZ190716002072' OR `barcode` = '9787565834783' LIMIT 0,10;
+"6978510097638"
+-- 修改订单相关各表中的goods_id, A换成B
+UPDATE trade_detail_onl AS tdn SET tdn.goods_id = 5992 WHERE tdn.goods_id = 6199 AND tdn.goods_barcode_onl = "YZ190712001776";
+UPDATE trade_goods_onl AS tgn SET tgn.goods_id = 5992 WHERE tgn.goods_id = 6199 ;
+-- AND tgn.deal_price = "19.90";
+
+UPDATE refund_detail_onl AS rdn SET rdn.goods_id = 5992 WHERE rdn.goods_id = 6199 AND rdn.goods_barcode_onl = "YZ190712001776";
+UPDATE trade_detail_ofl AS tdf SET tdf.goods_id = 5992 WHERE tdf.goods_id =  6199 ;
+
+-- 更新goods_id对应的条码、名称
+UPDATE trade_detail_onl AS tdn, goods AS g SET tdn.goods_barcode = g.barcode, tdn.goods_name = g.`name` WHERE tdn.goods_id = g.id AND g.id = 6111;
+UPDATE trade_goods_onl AS tgn, goods AS g SET tgn.goods_barcode = g.barcode, tgn.goods_name = g.`name` WHERE tgn.goods_id = g.id AND g.id = 6111;
+UPDATE refund_detail_onl AS rdn, goods AS g SET rdn.goods_barcode = g.barcode, rdn.goods_name = g.`name` WHERE rdn.goods_id = g.id AND g.id = 6111;
+UPDATE trade_detail_ofl AS tdf, goods AS g SET tdf.goods_barcode = g.barcode, tdf.goods_name = g.`name` WHERE tdf.goods_id = g.id AND g.id = 6111;
+
+
+-- 根据条码更新优康华创系统的商品id：goods_id_ofl
+UPDATE trade_detail_onl AS tdn, trade_onl AS tn, `huachuang-1`.goods_base AS gb SET tdn.goods_id_ofl = gb.id WHERE tdn.goods_barcode = gb.bar_code AND tdn.trade_onl_id = tn.id AND tn.es_id = 2
+	AND tdn.goods_barcode = "9787565834783";
+UPDATE trade_goods_onl AS tgn, `huachuang-1`.goods_base AS gb SET tgn.goods_id_ofl = gb.id WHERE tgn.goods_barcode = gb.bar_code AND tgn.es_id = 2
+	AND tgn.goods_barcode = "9787565834783";
+UPDATE trade_detail_ofl AS tdf, trade_onl AS tn, `huachuang-1`.goods_base AS gb SET tdf.goods_id_ofl = gb.id WHERE tdf.goods_barcode = gb.bar_code  AND tdf.trade_onl_id = tn.id AND tn.es_id = 2
+	AND tdf.goods_barcode = "9787565834783";
+
+-- 根据条码更新妈宝华创系统的商品id：goods_id_ofl
+UPDATE trade_detail_onl AS tdn, trade_onl AS tn, `huachuang-2`.goods_base AS gb SET tdn.goods_id_ofl = gb.id WHERE tdn.goods_barcode = gb.bar_code AND tdn.trade_onl_id = tn.id AND tn.es_id = 4
+	AND tdn.goods_barcode = "6959451977727";
+UPDATE trade_goods_onl AS tgn, `huachuang-2`.goods_base AS gb SET tgn.goods_id_ofl = gb.id WHERE tgn.goods_barcode = gb.bar_code AND tgn.es_id = 4
+	AND tgn.goods_barcode = "6959451977727";
+UPDATE trade_detail_ofl AS tdf, trade_onl AS tn, `huachuang-2`.goods_base AS gb SET tdf.goods_id_ofl = gb.id WHERE tdf.goods_barcode = gb.bar_code  AND tdf.trade_onl_id = tn.id AND tn.es_id = 4
+	AND tdf.goods_barcode = "6959451977727";
+
+-- 验证条码
+SELECT * FROM trade_detail_onl as  tdo  WHERE tdo.goods_barcode  = "9787565834783"

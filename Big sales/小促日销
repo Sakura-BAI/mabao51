@@ -86,14 +86,66 @@ SUM(td.pay_amount)/ COUNT(DISTINCT t.consignee_phone) AS menmber_average
 FROM trade_detail_onl AS td
 LEFT JOIN trade_onl as t ON t.id = td.trade_onl_id
 WHERE
-t.confirm_time
->=  "2019-05-28 00:00:00"
+t.confirm_time BETWEEN  "2019-06-26 00:00:00"  AND "2019-06-28 00:00:00"
 AND t.status  BETWEEN 2 AND 8
 -- AND t.consignee_phone =
-AND t.consignee_name NOT IN ("吴涛","胡蓉","李莹莹","刘海林","孙兰香","赵俊")
+-- AND t.consignee_name NOT IN ("吴涛","胡蓉","李莹莹","刘海林","孙兰香","赵俊")
+AND t.org_id_erp NOT IN ( 4000 , 25194)
+AND td.goods_barcode NOT IN  (
+"4901301253422",
+"6953574510311",
+"6903148158425",
+"4901301230881",
+"6953574520266",
+"6923589446431",
+"8718117605125",
+"6949756330334",
+"7613035260160",
+"6953574510267",
+"8712045031261",
+"6953574510250",
+"6903148158326",
+"6916457002327"
+)
+GROUP BY t.org_id_erp
+ORDER BY SUM(td.pay_amount)DESC
+
+
+
+/*wudi */
+SELECT
+t.org_id_erp,t.org_name,
+SUM(td.pay_amount) AS all_money,
+COUNT(DISTINCT t.consignee_phone) AS trade_man ,
+SUM(td.pay_amount)/ COUNT(DISTINCT t.consignee_phone) AS menmber_average
+FROM trade_detail_onl AS td
+LEFT JOIN trade_onl as t ON t.id = td.trade_onl_id
+WHERE
+t.confirm_time BETWEEN  "2019-06-26 00:00:00"  AND "2019-06-27 00:00:00"
+AND t.status  BETWEEN 2 AND 8
+-- AND t.consignee_phone =
+-- AND t.consignee_name NOT IN ("吴涛","胡蓉","李莹莹","刘海林","孙兰香","赵俊")
+AND td.goods_barcode NOT IN  (
+"4901301253422",
+"6953574510311",
+"6903148158425",
+"4901301230881",
+"6953574520266",
+"6923589446431",
+"8718117605125",
+"6949756330334",
+"7613035260160",
+"6953574510267",
+"8712045031261",
+"6953574510250",
+"6903148158326",
+"6916457002327"
+)
 AND t.org_id_erp NOT IN ( 4000 , 25194)
 GROUP BY t.org_id_erp
 ORDER BY SUM(td.pay_amount)DESC
+
+
 
 
 /*会员分析

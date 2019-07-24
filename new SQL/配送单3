@@ -1,0 +1,119 @@
+
+
+/*
+配送单制作,缺少商品规格,以及库存查询.
+查询是否有库存进行发货.
+真正的配送单制作。 依次作为配送单配送.
+*/
+
+
+
+DROP TEMPORARY TABLE  IF EXISTS baixi;
+CREATE TEMPORARY TABLE  baixi
+SELECT  gb.bar_code AS bar_code, gb.`name` AS NAME
+	, ROUND(SUM(number) * (AVG(igs.in_price) / 10000), 2) AS sum_price
+	, SUM(igs.number) AS all_number
+	, ROUND(AVG(igs.in_price) / 10000, 2) AS avg_price
+FROM arm_changsha.inv_goods_stock igs
+	INNER JOIN arm_changsha.goods_base gb ON gb.id = igs.goods_id
+WHERE igs.del_flag = "0"
+	AND gb.`name` NOT LIKE "测试%"
+	AND igs.department_id IN (25192,1000)
+	AND gb.bar_code IN (
+	SELECT gb.bar_code FROM arm_changsha.inv_goods_stock igs
+	INNER JOIN arm_changsha.goods_base gb ON gb.id = igs.goods_id
+	WHERE igs.department_id = 25192
+)
+GROUP BY gb.bar_code
+ORDER BY igs.department_id DESC
+;
+
+
+
+/*
+	T 周期内，待发货制作配送单商品。
+*/
+DROP TEMPORARY TABLE  IF EXISTS sakura;
+CREATE TEMPORARY TABLE  sakura
+SELECT t.id_onl ,t.id,t.`status`,t.status_label,tg.`status`as 状态,
+tg.status_label as baixi,
+t.confirm_time,t.org_name,tg.org_id,1204 as invcode,t.consignee_name,t.consignee_phone,tg.goods_barcode,tg.goods_id_ofl,tg.goods_name,COUNT(tg.goods_barcode) AS number FROM mabao51.trade_goods_onl_4_bi as tg
+LEFT JOIN mabao51.trade_onl as t on tg.trade_onl_id = t.id
+WHERE
+tg.org_id != 4000
+AND t.confirm_time <= DATE_FORMAT( NOW( ), '%Y-%m-%d 00:00:00' )
+-- AND t.confirm_time BETWEEN "2019-05-01 00:00:00" AND "2019-05-15 00:00:00"
+-- AND t.confirm_time < "2019-06-13 00:00:00"
+-- AND tg.goods_barcode = "MB00088B"
+AND t.`status` BETWEEN 2 AND 8
+AND tg.`status`  BETWEEN 2 AND 2
+and tg.goods_name NOT LIKE "%测试%"
+GROUP BY t.id_onl,tg.goods_barcode
+;
+
+
+
+SELECT s.*,b.all_number as 仓库可用库存 FROM baixi as b RIGHT JOIN sakura as s on b.bar_code = s.goods_barcode
+WHERE
+s.goods_barcode NOT IN ("6798532102036-1")
+-- WHERE
+-- id_onl = "E20190515160924067500013"
+and s.goods_name NOT LIKE  "欢乐51大放价，门店购物好时节"
+ORDER BY s.confirm_time DESC
+LIMIT 3000
+;
+
+
+
+
+
+
+
+/*superset 使用*/
+
+
+SELECT s.*,b.all_number as 仓库可用库存, TIMESTAMPDIFF(DAY, s.confirm_time , NOW() ) as 预警时间
+FROM
+(SELECT t.id_onl ,t.id,t.`status`,t.status_label,tg.`status`as 状态,
+tg.status_label as baixi,
+t.confirm_time,t.org_name,tg.org_id,1204 as invcode,t.consignee_name,t.consignee_phone,tg.goods_barcode,tg.goods_id_ofl,tg.goods_name,COUNT(tg.goods_barcode) AS number FROM mabao51.trade_goods_onl_4_bi as tg
+LEFT JOIN mabao51.trade_onl as t on tg.trade_onl_id = t.id
+WHERE
+tg.org_id != 4000
+-- AND t.confirm_time BETWEEN "2019-06-04 00:00:00" AND "2019-06-05 00:00:00"
+-- AND t.confirm_time BETWEEN "2019-05-01 00:00:00" AND "2019-05-15 00:00:00"
+-- AND t.confirm_time < "2019-06-06 00:00:00"
+AND t.`status` BETWEEN 2 AND 8
+AND tg.`status`  BETWEEN 0 AND 0
+and tg.goods_name NOT LIKE "%测试%"
+GROUP BY t.id_onl,tg.goods_barcode)    as s
+
+LEFT  JOIN
+(SELECT  gb.bar_code AS bar_code, gb.`name` AS NAME
+	, ROUND(SUM(number) * (AVG(igs.in_price) / 10000), 2) AS sum_price
+	, SUM(igs.number) AS all_number
+	, ROUND(AVG(igs.in_price) / 10000, 2) AS avg_price
+FROM arm_changsha.inv_goods_stock igs
+	INNER JOIN arm_changsha.goods_base gb ON gb.id = igs.goods_id
+WHERE igs.del_flag = "0"
+	AND gb.`name` NOT LIKE "测试%"
+	AND igs.department_id IN (25192,1000)
+	AND gb.bar_code IN (
+	SELECT gb.bar_code FROM arm_changsha.inv_goods_stock igs
+	INNER JOIN arm_changsha.goods_base gb ON gb.id = igs.goods_id
+	WHERE igs.department_id = 25192
+)
+GROUP BY gb.bar_code
+ORDER BY igs.department_id DESC)
+
+as  b
+
+on b.bar_code = s.goods_barcode
+
+WHERE
+s.goods_barcode NOT IN (6944639802717,"6798532102036-1")
+-- WHERE
+-- id_onl = "E20190515160924067500013"
+and s.goods_name NOT LIKE  "欢乐51大放价，门店购物好时节"
+ORDER BY s.confirm_time DESC
+LIMIT 3000

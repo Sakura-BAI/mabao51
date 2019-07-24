@@ -1,0 +1,113 @@
+/*修改商品条码*/
+UPDATE  goods_baseXX as gb  set gb.`有赞条码` = "6907992813080" , gb.`华创条码` = "6907992813080"
+where  gb.`有赞条码` = "YZ190620000304"
+
+
+/*批量插入新数据*/
+INSERT INTO `goods_baseX` (
+`purchase_man`    ,
+`sort`            ,
+`mb_code`         ,
+`yz_code`         ,
+`hc_code`         ,
+`goods_name`      ,
+`brand`           ,
+`supplier`        ,
+`specification`   ,
+`shipping_methods`,
+`purchase_price`  ,
+`delivery_price`
+) SELECT
+`purchase_man`    ,
+`sort`            ,
+`mb_code`         ,
+`yz_code`         ,
+`hc_code`         ,
+`goods_name`      ,
+`brand`           ,
+`supplier`        ,
+`specification`   ,
+`shipping methods`,
+`purchase_price`  ,
+`delivery_price`   FROM hbx.goods_baseX
+
+
+
+
+/**/
+SELECT
+	to2.confirm_time,
+	to2.id_onl,
+	 tgo4b.goods_barcode,
+	 gs.`code`,
+	to2.org_name,
+	tgo4b.goods_name,
+	gs.`supplier`,
+	count( tgo4b.id ) as purchase_num,
+	gs.`supplier_ways`,
+	gs.`specification`,
+	gs.`purchase_price`,
+	"优康妈宝" AS consignee_name,
+	concat( to2.consignee_addr_province, to2.consignee_addr_city, to2.consignee_addr_district, consignee_addr_detail ) AS consignee_addr
+FROM
+	trade_goods_onl_4_bi AS tgo4b
+	LEFT JOIN trade_onl AS to2 ON tgo4b.trade_onl_id = to2.id
+	LEFT JOIN goods_baseXXX AS gs ON tgo4b.goods_barcode = gs.`code`
+	LEFT JOIN ( SELECT * FROM 人员信息表 AS t WHERE t.`职位` = "店长" ) AS man ON man.`dor_id` = to2.org_id_erp
+WHERE
+	to2.confirm_time BETWEEN DATE_FORMAT( DATE_SUB( NOW( ), INTERVAL 1 DAY ), '%Y-%m-%d 00:00:00' )
+	AND DATE_FORMAT( NOW( ), '%Y-%m-%d 00:00:00' )
+	AND to2.STATUS BETWEEN 2
+	AND 8
+GROUP BY
+	gs.`supplier`,
+	tgo4b.goods_barcode,
+	to2.org_id_erp
+
+
+	/**/
+	INSERT INTO
+`goods_baseXXX` (
+`line_time`,
+`purchase`,
+`leimu`,
+`code`,
+`mbcode`,
+`hccode`,
+`goods_name`,
+`brand`,
+`supplier`,
+`specification`,
+`supplier_ways`,
+`purchase_price`,
+`ERP_deliever_price`,
+`ERP_price`,
+`ERP_menmber_price`,
+`ruler_price`,
+`acvtie_price`,
+`active_li`,
+`big_li`,
+`remark`
+) SELECT
+`上线时间`  ,
+`采购`      ,
+`分类`      ,
+`有赞条码`  ,
+`妈宝条码`  ,
+`华创条码`  ,
+`商品名称`  ,
+`品牌`      ,
+`主供应商`  ,
+`规格`      ,
+`物流方式`  ,
+`ERP进价`   ,
+`ERP配送价` ,
+`ERP零售价` ,
+`ERP会员价` ,
+`常规价`    ,
+`活动价`    ,
+`活动毛利率`,
+`大促毛利率`,
+`备注`
+FROM
+    hbx.`商品资料表柏喜模板`

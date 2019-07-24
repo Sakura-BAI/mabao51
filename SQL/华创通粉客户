@@ -1,0 +1,14 @@
+
+select mmd.mobile,mmd.name,gs.sales_date,gb.name, avg(gb.sales_price /10000)
+from goods_sales_detail as gsd
+     left join  goods_base as gb on gb.id =  gsd.goods_id
+     left join goods_sales as gs on gs.id = gsd.sales_id
+     left join ms_member_def as mmd  on gs.member_id = mmd.id
+    left join  goods_kind as gk on gk.id = gb.kind_id
+where
+      gs.sales_date BETWEEN DATE_SUB("2019-06-19 00:00:00", INTERVAL 90 DAY)
+      AND "2019-06-19 00:00:00"
+and  gk.code like "0112%"
+and  mmd.mobile is not null
+group by  mmd.mobile;
+

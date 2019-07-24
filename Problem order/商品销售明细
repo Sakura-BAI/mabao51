@@ -8,4 +8,19 @@ FROM trade_detail_onl AS td
 LEFT JOIN trade_onl as t ON t.id = td.trade_onl_id
 WHERE t.org_id  != 4000
 AND t.`status` BETWEEN 2 AND 8
-AND td.goods_name  LIKE "%夏季新款男士真皮凉鞋%"
+AND td.goods_name  LIKE "%米趣家纺-柔肤水洗棉牛奶丝夏凉被200*230cm-MQ-清凉夏威夷%"
+
+
+
+
+
+
+
+/*纸巾卖了多少*/
+select count(gn.id), gn.goods_name, gn.*
+from trade_goods_onl as gn
+       left join trade_onl as t on t.id = gn.trade_onl_id
+where t.confirm_time between "2019-06-15 00:00:00" and "2019-06-16 00:00:00"
+  and gn.goods_name like "%怡恩贝婴儿%"
+  and t.status between 2 and 8
+group by gn.goods_barcode

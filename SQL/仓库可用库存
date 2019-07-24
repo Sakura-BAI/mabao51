@@ -42,7 +42,6 @@ GROUP BY goods_barcode
     实际结果
 */
 SELECT b.bar_code,b.NAME,b.all_number,IFNULL((b.all_number - s.number),b.all_number) as 可用库存, s.number,b.sum_price,b.avg_price   FROM baixi as b LEFT JOIN sakura as s on b.bar_code = s.goods_barcode LIMIT 3000
-
 ;
 /*
   sueprset 使用SQL

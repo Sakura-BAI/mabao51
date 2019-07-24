@@ -2,15 +2,16 @@
 SELECT
 t.org_id_erp,t.org_name,
 SUM(t.pay_amount),
-SUM(t.pay_amount)/TIMESTAMPDIFF(DAY, "2019-05-28 00:00:00" , "2019-05-31 00:00:00" ) AS day_average ,
+SUM(t.pay_amount)/TIMESTAMPDIFF(DAY, "2019-07-01 00:00:00" , "2019-07-15 00:00:00" ) AS day_average ,
 COUNT(DISTINCT t.consignee_phone) AS trade_man ,
 SUM(t.pay_amount)/ COUNT(DISTINCT t.consignee_phone) AS menmber_average
 FROM trade_onl as t
 WHERE
 t.confirm_time
-BETWEEN  "2019-05-28 00:00:00"  AND "2019-05-31 00:00:00"
+BETWEEN  "2019-07-01 00:00:00"  AND "2019-07-15 00:00:00"
+and t.es_id = 4
 AND t.status  BETWEEN 2 AND 8
-AND  t.org_id_erp NOT IN (4000,"")
+AND  t.org_id_erp NOT IN (4000,"",25182)
 GROUP BY t.org_id_erp
 
 ;
@@ -22,9 +23,10 @@ t.org_id_erp,t.id_onl
 FROM trade_onl as t
 WHERE
 t.confirm_time
-BETWEEN  "2019-05-28 00:00:00"  AND "2019-05-31 00:00:00"
+BETWEEN  "2019-07-01 00:00:00"  AND "2019-07-15 00:00:00"
 AND t.status  BETWEEN 2 AND 8
-AND  t.org_id_erp NOT IN (4000,"")
+AND  t.org_id_erp NOT IN (4000,"",25182)
+and t.es_id = 4
 GROUP BY t.id_onl
 ) as t
 GROUP BY t.org_id_erp
@@ -36,8 +38,8 @@ SELECT a.salesdepart_id, COUNT(a.mobile) FROM
 SELECT  a.salesdepart_id,b.mobile
 FROM arm_changsha.goods_sales AS a
 LEFT JOIN arm_changsha.ms_member_def AS b ON b.id = a.member_id
-WHERE a.sales_date >= "2019-05-28 00:00:00"
-AND a.sales_date <= "2019-05-31 00:00:00"
+WHERE a.sales_date >= "2019-07-01 00:00:00"
+AND a.sales_date <= "2019-07-15 00:00:00"
 AND a.sales_type = 1
 AND a.sales_channel_id  = "O2O"
 GROUP BY b.mobile
@@ -49,6 +51,10 @@ GROUP BY a.salesdepart_id
 ;
 
 /*全部购买人数*/
+
+
+SELECT COUNT(gs.member_id),gs.salesdepart_id FROM
+(
 SELECT
 	*
 FROM
@@ -68,16 +74,20 @@ FROM
 	WHERE
 	  tn.org_id NOT IN (4000, 4004)
 		AND tn.org_id > 0
-		AND tn.order_time BETWEEN "2019-05-28 00:00:00" AND "2019-05-31 00:00:00"
+		AND tn.order_time BETWEEN "2019-07-01 00:00:00" AND "2019-07-15 00:00:00"
 	GROUP BY
 		tn.org_id_erp
 	) AS yzo ON yzo.org_id_erp = gs2.salesdepart_id
 WHERE
-	gs2.sales_date BETWEEN "2019-05-28 00:00:00"
-	AND "2019-05-31 00:00:00"
+	gs2.sales_date BETWEEN "2019-07-01 00:00:00"
+	AND "2019-07-15 00:00:00"
 	AND yzo.org_id_erp IS NOT NULL
 GROUP BY
   gs2.member_id
+) as gs
+GROUP BY gs.salesdepart_id
+
+
 
 ;
 
@@ -94,6 +104,7 @@ FROM
 		, tn.consign_time
 	FROM mabao51.trade_onl tn
 	WHERE tn.consignee_phone IS NOT NULL
+	and tn.es_id = 2
 		AND tn.org_id NOT IN (4000, 4004)
 	GROUP BY tn.consignee_phone
 ) yzm1,
@@ -105,13 +116,14 @@ FROM
 		WHERE tn.consign_time IS NOT NULL
 			AND tn.consignee_phone IS NOT NULL
 			AND tn.org_id > 0
+			and tn.es_id = 2
 			AND tn.org_id NOT IN (4000, 4004)
 		GROUP BY tn.consignee_phone
 	) yzm2, arm_changsha.ms_member_def hcm
 WHERE hcm.mobile = yzm1.consignee_phone
 	AND yzm1.consignee_phone = yzm2.consignee_phone
 	AND hcm.create_date >= yzm1.order_time
-	AND yzm2.consign_time BETWEEN "2019-05-28 00:00:00" AND "2019-05-31 00:00:00"
+	AND yzm2.consign_time BETWEEN "2019-07-01 00:00:00" AND "2019-07-15 00:00:00"
 ) as a
 GROUP BY a.org_id_erp
 
@@ -144,13 +156,13 @@ FROM
 	WHERE
 	  tn.org_id > 0
 	  AND tn.org_id NOT IN (4000, 4004)
-		AND tn.order_time BETWEEN "2019-05-28 00:00:00" AND "2019-05-31 00:00:00"
+		AND tn.order_time BETWEEN "2019-07-01 00:00:00" AND "2019-07-15 00:00:00"
 	GROUP BY
 		tn.org_id_erp
 	) AS yzo ON yzo.org_id_erp = gs2.salesdepart_id
 WHERE
-	gs2.sales_date BETWEEN "2019-05-28 00:00:00"
-	AND "2019-05-31 00:00:00"
+	gs2.sales_date BETWEEN "2019-07-01 00:00:00"
+	AND "2019-07-15 00:00:00"
 	AND m.create_date > "2019-01-01 00:00:00"
 	AND yzo.org_id_erp IS NOT NULL
 ) as a
@@ -167,7 +179,7 @@ SELECT  DISTINCT b.mobile,b.`name` ,DAY(a.sales_date ), CONCAT(b.mobile,"_",DAY(
 FROM arm_changsha.goods_sales AS a
 LEFT JOIN arm_changsha.ms_member_def AS b ON b.id = a.member_id
 WHERE
-a.sales_date BETWEEN "2019-05-28 00:00:00" AND "2019-05-31 00:00:00"
+a.sales_date BETWEEN "2019-07-01 00:00:00" AND "2019-07-15 00:00:00"
 AND a.sales_type = 1
 AND a.sales_channel_id  = "O2O"
 GROUP BY CONCAT(b.mobile,"_",DAY(a.sales_date ))
@@ -180,7 +192,7 @@ SELECT  DISTINCT b.mobile,b.`name` ,DAY(a.sales_date ),a.sales_date, CONCAT(b.mo
 FROM arm_changsha.goods_sales AS a
 LEFT JOIN arm_changsha.ms_member_def AS b ON b.id = a.member_id
 WHERE
-a.sales_date BETWEEN "2019-05-28 00:00:00" AND "2019-05-31 00:00:00"
+a.sales_date BETWEEN "2019-07-01 00:00:00" AND "2019-07-15 00:00:00"
 AND a.sales_type = 1
 AND a.sales_channel_id  !=  "O2O"
 GROUP BY CONCAT(b.mobile,"_",DAY(a.sales_date ))

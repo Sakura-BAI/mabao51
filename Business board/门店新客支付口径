@@ -1,0 +1,37 @@
+
+/*商家接单时间,的支付会员新客*/
+
+SELECT COUNT(`会员手机号码`),org_id_erp FROM
+(
+SELECT yzm1.org_id_erp,yzm2.consignee_phone AS `会员手机号码`, yzm2.confirm_time AS `线上首购接单时间`,yzm1.order_time AS `线上首购下单时间` , yzm2.consign_time AS `线上首购核销时间`, hcm.id AS 华创会员ID, hcm.create_date AS 华创会员创建时间
+	, hcm.fisrt_shopping_time AS 华创会员首购时间
+FROM
+-- 	全部订单人数
+	(
+	SELECT tn.org_id_erp,tn.id, tn.consignee_phone, tn.confirm_time, MIN(tn.order_time) AS order_time
+		, tn.consign_time
+	FROM mabao51.trade_onl tn
+	WHERE tn.consignee_phone IS NOT NULL
+	and tn.es_id = 2
+		AND tn.org_id NOT IN (4000, 4004)
+	GROUP BY tn.consignee_phone
+
+) yzm1,
+		--  核销订单人数,最早下单时间.华创创建时间晚于订单时间.新客
+		(
+		SELECT tn.id, tn.consignee_phone, tn.confirm_time, MIN(tn.order_time) AS order_time
+			, tn.consign_time
+		FROM mabao51.trade_onl tn
+		WHERE
+			tn.`status` BETWEEN 2 AND 8
+				and tn.es_id = 2
+			AND tn.org_id > 0
+			AND tn.org_id NOT IN (4000, 4004)
+		GROUP BY tn.consignee_phone
+	) yzm2, arm_changsha.ms_member_def hcm
+WHERE hcm.mobile = yzm1.consignee_phone
+	AND yzm1.consignee_phone = yzm2.consignee_phone
+	AND hcm.create_date >= yzm1.order_time
+	AND yzm2.confirm_time BETWEEN "2019-06-01 00:00:00" AND "2019-06-17 00:00:00"
+) as a
+GROUP BY a.org_id_erp
