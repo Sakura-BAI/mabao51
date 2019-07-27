@@ -1,0 +1,61 @@
+SELECT
+	igs.department_id,
+	s.`name`,
+	gb.bar_code AS bar_code,
+	gb.`name` AS name11,
+	ROUND( SUM( number ) * ( AVG( igs.in_price ) / 10000 ), 2 ) AS sum_price,
+	SUM( number ) AS all_number,
+	b.Dnumber,
+	ROUND( AVG( igs.in_price ) / 10000, 2 ) AS avg_price
+FROM
+	arm_zuobaoyoubei.inv_goods_stock igs
+	INNER JOIN arm_zuobaoyoubei.goods_base gb ON gb.id = igs.goods_id
+	LEFT JOIN sys_office as s  on igs.department_id  = s.id
+	LEFT JOIN
+(SELECT
+	iogd.goods_id,
+	g.`name`,
+	g.bar_code,
+	iog.department_id,
+	s.`name` as name1,-- 		iogd.*
+	SUM( iogd.number ) AS Dnumber,
+	sum( iogd.in_stock_number ) AS in_stock_number,
+	sum( iogd.number ) - sum( iogd.in_stock_number ) AS DiffNumber
+FROM
+	arm_zuobaoyoubei.inv_order_goods_detail AS iogd
+	LEFT JOIN arm_zuobaoyoubei.inv_order_goods AS iog ON iog.id = iogd.order_goods_id
+	LEFT JOIN arm_zuobaoyoubei.goods_base AS g ON g.id = iogd.goods_id
+	LEFT JOIN arm_zuobaoyoubei.sys_office AS s ON s.id = iog.department_id
+	WHERE-- 		iogd.order_goods_id =	"IO2019071810002110948"
+-- 	iog.department_id = 25184
+	 iogd.del_flag = 0
+-- 	AND g.bar_code = "YZ190703001032"
+-- 	AND iogd.goods_id = "G234632" -- -- -- 		iogd.create_date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+GROUP BY
+	iogd.goods_id ,
+	iog.department_id) as b on b.bar_code = gb.bar_code and b.department_id = igs.department_id
+
+WHERE
+	igs.del_flag = "0"
+-- 	AND gb.`name` NOT LIKE "测试%"
+GROUP BY
+	gb.bar_code,igs.department_id
+
+
+
+
+/*门店销售*/
+SELECT
+	trade_onl.org_name,
+	trade_goods_onl.goods_name,
+	trade_goods_onl.goods_barcode,
+	COUNT( trade_goods_onl.goods_name ) AS number
+FROM
+	mabao51.trade_onl
+	LEFT JOIN mabao51.trade_goods_onl ON trade_onl.id = trade_goods_onl.trade_onl_id
+WHERE
+	trade_onl.es_id = 4
+	AND trade_goods_onl.goods_name NOT LIKE "测试%" -- AND trade_goods_onl.goods_barcode IN ('YZ190703001032')
+GROUP BY
+	trade_onl.org_name,
+	trade_goods_onl.goods_barcode

@@ -1,0 +1,50 @@
+
+select  sp.一级分类,sp.二级分类,sum(tgo.pay_price) from  trade_goods_onl as tgo
+left join 商品类目表  as sp on tgo.goods_id_onl = sp.商品ID
+left join trade_onl as t on tgo.trade_onl_id = t.id
+where
+t.confirm_time between  "2019-06-26 00:00:00" and  "2019-06-27 00:00:00"
+group by sp.一级分类,sp.二级分类
+
+
+/*will 类目数据*/
+select g.item_tags_first,tgo.goods_name,tgo.goods_barcode,sum(tgo.pay_price)
+from mabao51.trade_goods_onl  as tgo
+       left join mabao51.trade_onl as t on tgo.trade_onl_id = t.id
+       left join
+(	SELECT  * FROM	`mabao51-bi`.good1s GROUP BY unique_id ) as g on tgo.goods_barcode = g.unique_id
+where t.confirm_time between "2019-07-01 00:00:00" and "2019-07-13 00:00:00"
+and t.es_id = 2
+AND tgo.goods_name not LIKE "%测试%"
+group by g.item_tags_first,tgo.goods_barcode
+ORDER BY sum(tgo.pay_price) DESC
+
+
+
+/*最新版本,主要六月份,很多都下降了.*/
+-- 更改了订单级别。可以看到订单级别数据
+DROP TEMPORARY TABLE  IF EXISTS baixi;
+CREATE TEMPORARY TABLE  baixi
+SELECT  g.item_tags_first,tgo.goods_name,tgo.goods_barcode,tgo.trade_onl_id,tgo.pay_price   from
+mabao51.trade_goods_onl  as tgo  LEFT JOIN
+(	SELECT  * FROM	`mabao51-bi`.good1s GROUP BY unique_id ) as g on tgo.goods_barcode = g.unique_id
+;
+
+SELECT b.item_tags_first,b.goods_name,b.goods_barcode,b.trade_onl_id,SUM(b.pay_price)  FROM baixi  as b LEFT JOIN mabao51.trade_onl as t on b.trade_onl_id = t.id
+where
+--  b.goods_barcode = "YZ190620000318"
+t.confirm_time between "2019-07-01 00:00:00" and "2019-07-27 00:00:00"
+-- and t.es_id = 2
+AND b.goods_name not LIKE "%测试%"
+group by b.item_tags_first,b.goods_barcode,t.id_onl
+ORDER BY SUM(b.pay_price) DESC
+
+
+
+
+-- select g.item_tags_first,sum(tgo.pay_price)
+-- from mabao51.trade_goods_onl  as tgo
+--        left join mabao51.trade_onl as t on tgo.trade_onl_id = t.id
+--        left join `mabao51-bi`.good1s as g on tgo.goods_barcode = g.unique_id
+-- where t.confirm_time between "2019-07-01 00:00:00" and "2019-07-13 00:00:00"
+-- group by tgo.goods_barcode

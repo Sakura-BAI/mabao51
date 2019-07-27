@@ -1,0 +1,56 @@
+
+--  改为支付时间的退货率,不要出错.
+
+--  付款商品
+DROP TEMPORARY TABLE  IF EXISTS base;
+CREATE TEMPORARY TABLE base
+select t.id_onl,tgo.goods_name,tgo.goods_barcode,t.confirm_time,COUNT(tgo.id) as num,sum(tgo.pay_price) as money
+from mabao51.trade_goods_onl as tgo
+       left join mabao51.trade_onl as t on tgo.trade_onl_id = t.id
+where
+t.confirm_time  BETWEEN "2019-07-01 00:00:00"  and "2019-07-27 00:00:00"
+and tgo.goods_name not LIKE "%测试%"
+-- and t.es_id = 2
+GROUP BY tgo.goods_barcode,t.id_onl
+;
+
+-- 退款商品
+DROP TEMPORARY TABLE  IF EXISTS baixi;
+CREATE TEMPORARY TABLE baixi
+SELECT g.goods_name,g.goods_barcode,g.confirm_time,g.dayily,SUM(r_num) as r_num,sum(r_money) as r_money FROM
+(
+select
+tgo.goods_name,tgo.goods_barcode,t.confirm_time,ro.apply_time,
+COUNT(tgo.id) as r_num,
+TIMESTAMPDIFF(DAY, t.confirm_time , ro.apply_time ) AS dayily ,
+sum(tgo.pay_price) as r_money
+from mabao51.trade_goods_onl as tgo
+       left join mabao51.trade_onl as t on tgo.trade_onl_id = t.id
+			 LEFT JOIN mabao51.refund_onl as ro on tgo.refund_onl_id = ro.id
+where
+ tgo.refund_detail_onl_id != 0
+ and tgo.goods_name NOT LIKE "%测试%"
+ and t.confirm_time BETWEEN "2019-07-01 00:00:00"  and "2019-07-27 00:00:00"
+ and t.es_id = 2
+--  AND tgo.goods_barcode = "689-F32"
+GROUP BY tgo.goods_barcode,dayily
+HAVING dayily BETWEEN 0 and 15
+) as g
+GROUP BY g.goods_barcode
+
+;
+
+
+SELECT
+	g.item_tags_first,
+	b.*,
+	x.dayily,
+	IF(x.r_num IS NULL,0,x.r_num ) as r_num,
+	x.r_money
+FROM
+	base AS b
+	LEFT JOIN baixi AS x ON b.goods_barcode = x.goods_barcode
+	LEFT JOIN (SELECT  * FROM	`mabao51-bi`.good1s GROUP BY unique_id) as g on b.goods_barcode = g.unique_id
+ORDER BY b.num desc
+
+-- WHERE

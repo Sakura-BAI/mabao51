@@ -1,0 +1,18 @@
+CREATE TEMPORARY TABLE BAXI
+SELECT * FROM
+(SELECT g.yzcode FROM mabao51.goods_base AS g GROUP BY g.yzcode HAVING COUNT( * ) > 1 )  AS g
+
+;
+
+CREATE TEMPORARY TABLE BASE
+SELECT * FROM
+ (SELECT MIN( g.id ) FROM mabao51.goods_base AS g GROUP BY g.yzcode HAVING COUNT( * ) > 1) as k
+;
+
+
+DELETE
+FROM
+	mabao51.goods_base
+WHERE
+	mabao51.goods_base.yzcode IN ( SELECT *  FROM BAXI )
+	AND mabao51.goods_base.id IN ( SELECT *  FROM BASE );

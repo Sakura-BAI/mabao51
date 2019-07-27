@@ -1,0 +1,33 @@
+
+
+SELECT a.*,b.all_money as money FROM
+(
+SELECT
+t.org_id,
+t.org_name,
+SUM(td.pay_amount) AS all_money,
+COUNT(DISTINCT t.consignee_phone) AS trade_man ,
+SUM(td.pay_amount)/ COUNT(DISTINCT t.consignee_phone) AS menmber_average
+FROM trade_detail_onl AS td
+LEFT JOIN trade_onl as t ON t.id = td.trade_onl_id
+WHERE
+t.confirm_time BETWEEN  DATE_FORMAT(DATE_SUB(NOW(),INTERVAL 1 day), '%Y-%m-%d 00:00:00') AND DATE_FORMAT(NOW(), '%Y-%m-%d 00:00:00')
+AND t.status  BETWEEN 2 AND 8
+AND t.org_id_erp NOT IN ( 4000 , 25194)
+GROUP BY t.org_id_erp
+ORDER BY SUM(td.pay_amount)DESC
+) as  a  LEFT JOIN (
+SELECT
+t.org_id,
+t.org_name,
+SUM(td.pay_amount) AS all_money
+FROM trade_detail_onl AS td
+LEFT JOIN trade_onl as t ON t.id = td.trade_onl_id
+WHERE
+t.confirm_time > '2019-07-01 00:00:00'
+AND t.status  BETWEEN 2 AND 8
+AND t.org_id_erp NOT IN ( 4000 , 25194)
+GROUP BY t.org_id_erp
+ORDER BY SUM(td.pay_amount)DESC
+) as b  on  a.org_id = b.org_id
+ORDER BY b.all_money DESC
