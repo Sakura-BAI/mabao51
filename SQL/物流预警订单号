@@ -1,0 +1,57 @@
+-- 包裹查快递需要基本信息
+DROP TEMPORARY TABLE  IF EXISTS baixi;
+CREATE TEMPORARY TABLE baixi
+SELECT
+	pg.create_time,
+	TIMESTAMPDIFF( DAY, DATE_FORMAT( pg.create_time, '%y-%m-%d ' ), DATE_FORMAT( NOW( ), '%y-%m-%d' ) )AS care_time,
+	p.status_label,
+	iog.`status`,
+	p.purchase_id_ofl,
+	pg.trade_onl_id_onl,
+	p.express_number,
+	p.express_company,
+	p.org_id_erp,
+	p.org_name,
+	pg.goods_name,
+	pg.goods_barcode,
+	SUM(pg.goods_num)
+FROM
+	package_goods AS pg
+	LEFT JOIN package AS p ON pg.package_id = p.id
+	LEFT JOIN arm_changsha.inv_order_goods as iog on iog.id = p.purchase_id_ofl
+WHERE p.`status` != 7
+and  pg.is_deleted = 0
+and p.org_id_erp not in (25194)
+GROUP BY p.purchase_id_ofl,pg.goods_barcode
+;
+
+-- 获取到商品对应供应商
+DROP TEMPORARY TABLE  IF EXISTS sakura;
+CREATE TEMPORARY TABLE sakura
+SELECT
+	gb.bar_code,
+	bp.id,
+	bp.`name`,
+	gb.modal_id,
+	gb.purchase_price / 10000 AS purchase_price,
+	gb.delivery_price / 10000 AS delivery_price
+FROM
+	arm_changsha.goods_base AS gb
+	LEFT JOIN arm_changsha.bp_supplier_base AS bp ON gb.provider_no  = bp.id ;
+
+--
+
+
+SELECT
+	b.*,
+	s.`name`,
+CASE
+
+		WHEN b.org_id_erp LIKE "251%" THEN
+		"新商城" ELSE "老商城"
+	END AS store
+FROM
+	baixi AS b
+	LEFT JOIN sakura AS s ON b.goods_barcode = s.bar_code
+ORDER BY
+	b.care_time DESC

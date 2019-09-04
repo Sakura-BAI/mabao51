@@ -1,0 +1,41 @@
+
+-- mabao51_goods , supplier, order 运费模板ID虚假的,对应不上模板ID
+
+SELECT
+
+-- *
+o.hipac_order_id,
+o.purchase_id_erp,
+o.create_time,
+o.org_name,
+o.org_id_erp,
+su.`name`,
+o.supplier_id_erp,
+od.item_code,
+od.sku_code,
+od.goods_name,
+CONCAT(gs.feature_value_name_1,'_',gs.feature_value_name_2) as feature_value_name_1 ,
+-- od.goods_specificat,
+od.goods_num,
+od.purchase_price_hipac,
+(od.goods_num * od.purchase_price_hipac) as order_money,
+od.logistic_template_id,
+od.logistic_template_name,
+o.consignee_name,
+o.consignee_phone,
+o.consignee_addr_province,
+o.consignee_addr_city,
+o.consignee_addr_district,
+o.status_label,
+lt.first_fee,
+p.express_company,
+p.express_number
+FROM
+	mabao_order.`order` AS o
+	LEFT JOIN mabao_order.order_detail AS od  ON o.id = od.order_id
+	LEFT JOIN mabao51_goods.logistic_template as lt on lt.id = o.logistic_template_id
+	LEFT JOIN mabao51_goods.supplier as su on su.id_hipac = o.supplier_id_hipac
+	LEFT JOIN mabao51.package as	p on p.purchase_id_ofl = o.purchase_id_erp
+	LEFT JOIN mabao51_goods.goods as gs on gs.sku_code = od.sku_code
+
+-- 	GROUP BY od.sku_code

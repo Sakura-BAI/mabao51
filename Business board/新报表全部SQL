@@ -2,7 +2,6 @@
 SELECT
 t.org_id_erp,t.org_name,
 SUM(t.pay_amount),
-SUM(t.pay_amount)/TIMESTAMPDIFF(DAY, "2019-07-01 00:00:00" , "2019-07-15 00:00:00" ) AS day_average ,
 COUNT(DISTINCT t.consignee_phone) AS trade_man ,
 SUM(t.pay_amount)/ COUNT(DISTINCT t.consignee_phone) AS menmber_average
 FROM trade_onl as t
@@ -51,8 +50,6 @@ GROUP BY a.salesdepart_id
 ;
 
 /*全部购买人数*/
-
-
 SELECT COUNT(gs.member_id),gs.salesdepart_id FROM
 (
 SELECT
@@ -199,3 +196,18 @@ GROUP BY CONCAT(b.mobile,"_",DAY(a.sales_date ))
 ;
 
 SELECT s.*,b.sales_channel_id as qudao,b.XFMN  FROM sakura as s INNER  JOIN baixi as b ON s.s1 = b.b1 ;
+
+
+/*新商城核销客户*/
+SELECT a.salesdepart_id, COUNT(a.mobile) FROM
+(
+SELECT  a.salesdepart_id,b.mobile
+FROM goods_sales AS a
+LEFT JOIN ms_member_def AS b ON b.id = a.member_id
+WHERE a.sales_date >= "2019-07-01 00:00:00"
+AND a.sales_date <= "2019-07-30 00:00:00"
+AND a.sales_type = 1
+AND a.sales_channel_id  = "O2O"
+GROUP BY b.mobile
+) as a
+GROUP BY a.salesdepart_id

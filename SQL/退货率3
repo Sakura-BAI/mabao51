@@ -36,9 +36,7 @@ where
 GROUP BY tgo.goods_barcode,dayily
 HAVING dayily BETWEEN 0 and 15
 ) as g
-GROUP BY g.goods_barcode
-
-;
+GROUP BY g.goods_barcode;
 
 
 SELECT

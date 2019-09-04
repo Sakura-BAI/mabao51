@@ -1,0 +1,8 @@
+SELECT
+	g.* ,gb.`name`
+FROM
+	goods_rebate_cfg AS g
+LEFT JOIN `huachuang-1`.goods_base as gb
+on g.yz_code = gb.bar_code
+WHERE
+	g.rebate_proportion > 0.15
